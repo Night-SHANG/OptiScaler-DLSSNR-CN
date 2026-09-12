@@ -1,10 +1,442 @@
 {
   "locale": "zh-CN",
   "scan": {
-    "added": [],
+    "added": [
+      "ui.auto.688a57ebcf46",
+      "ui.auto.1a6bd1741ca9",
+      "ui.auto.0a5f6f2d5ea1",
+      "ui.auto.eeecf231fcf4",
+      "ui.auto.5194522843a0",
+      "ui.auto.8b1e6cce1caa",
+      "ui.auto.9f5cd8a2e880",
+      "ui.auto.5b2639a6e005",
+      "ui.auto.d4f86f834968",
+      "ui.auto.3bddd02dc550",
+      "ui.auto.956d0a6e5867",
+      "ui.auto.2905d824f6c8",
+      "ui.auto.188c60e86e6b",
+      "ui.auto.5832c01623d1",
+      "ui.auto.3eaea8cfe702",
+      "ui.auto.7bd67fef9d30",
+      "ui.auto.17525ce70bb2",
+      "ui.auto.eb4f619deb13",
+      "ui.auto.4a7cac450c24",
+      "ui.auto.ceaeec296e21",
+      "ui.auto.4d0b6747ca08",
+      "ui.auto.e5e1e6d9a2b6",
+      "ui.auto.57317d75d36c",
+      "ui.auto.68c2cc7f0cea",
+      "ui.auto.4c75d800cc10",
+      "ui.auto.d0f1caca690b",
+      "ui.auto.99a0efc6cfd8",
+      "ui.auto.5e117f210463",
+      "ui.auto.f28563a477a9",
+      "ui.auto.ef2eb4d3ae8e",
+      "ui.auto.6c5f0776088b",
+      "ui.auto.6e5d02ba48f2",
+      "ui.auto.6017572ba18a",
+      "ui.auto.e4de816e87fa",
+      "ui.auto.84d8fc9e2d7e",
+      "ui.auto.28f73a0090c9",
+      "ui.auto.b34e5f68455c",
+      "ui.auto.d5f7c18fd839",
+      "ui.auto.df85db7e2680",
+      "ui.auto.c47597f65ba6",
+      "ui.auto.434c0e82a71b",
+      "ui.auto.f0afd36e1841",
+      "ui.auto.a0f1490a20d0",
+      "ui.auto.c83db3e058f1",
+      "ui.auto.d3eb585acf24",
+      "ui.auto.826cee1e2d3e",
+      "ui.auto.a7b853038cf3",
+      "ui.auto.c70fb868c7b1",
+      "ui.auto.f9155caf8386",
+      "ui.auto.9e791d6498ac",
+      "ui.auto.5812e0d26182",
+      "ui.auto.eac50e404aa5",
+      "ui.auto.11f6ad8ec52a",
+      "ui.auto.fd7b6ed3447f",
+      "ui.auto.10642b6c2bdf",
+      "ui.auto.f16fe627a8d4",
+      "ui.auto.b80f9dd2b6f7",
+      "ui.auto.51434bf92639",
+      "ui.auto.0790bd260240",
+      "ui.auto.1ceef8c0bcd0",
+      "ui.auto.b239cd985f7c",
+      "ui.auto.048da2ade41a",
+      "ui.auto.8d105cf44d39",
+      "ui.auto.dbc16b0ecdc2",
+      "ui.auto.89376e096de8",
+      "ui.auto.14345f86a7f4",
+      "ui.auto.f6a3ad4a5b9b",
+      "ui.auto.9b3cbed5c490",
+      "ui.auto.fc8230b4119a",
+      "ui.auto.63858078d09a",
+      "ui.auto.e3de5ab0ca4c",
+      "ui.auto.992ac48914e2",
+      "ui.auto.5736a4c66680",
+      "ui.auto.e5ce501b4fb1",
+      "ui.auto.dfd3eb4bffb4",
+      "ui.auto.31ad6e30bfd3",
+      "ui.auto.aef624f621f3",
+      "ui.auto.fd0816e5b5c5",
+      "ui.auto.b9112cf8e1b3",
+      "ui.auto.19700482e2de"
+    ],
     "changed": [],
     "removed": []
   },
-  "missing": [],
+  "missing": [
+    {
+      "key": "ui.auto.0a5f6f2d5ea1",
+      "source": "Can be toggled with a key -- bind it under Keybinds, \"Neural Rendering\".",
+      "source_hash": "75b8ae722b96e1b3c49748f84c26c54d958f806c88700d587d7c465500657be2"
+    },
+    {
+      "key": "ui.auto.eeecf231fcf4",
+      "source": "Apply the model",
+      "source_hash": "aa52b88a569d9b8e7403cb85f0dd2c03e895624af7c6ee5c3c5c9fc1bcdb99d1"
+    },
+    {
+      "key": "ui.auto.5194522843a0",
+      "source": "Off. The model stays loaded, so turning this back on is immediate.",
+      "source_hash": "f54db35f42976fc04f0e0af177855cd080d4012b819ae8966d005160604cf703"
+    },
+    {
+      "key": "ui.auto.8b1e6cce1caa",
+      "source": "Off for this session: %s.",
+      "source_hash": "83020a0e8272927de301f3beb66b4508434648e38f2d2fe691f3c0c809bbdc5f"
+    },
+    {
+      "key": "ui.auto.9f5cd8a2e880",
+      "source": "Retry",
+      "source_hash": "942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852"
+    },
+    {
+      "key": "ui.auto.5b2639a6e005",
+      "source": "Waiting for the upscaler to run.",
+      "source_hash": "b61d7e71264d24faf7e3551b2f57f7c29fe1abb39e0c27e6cfd998955d4d57e9"
+    },
+    {
+      "key": "ui.auto.d4f86f834968",
+      "source": "Running%s - %.2f ms per frame%s",
+      "source_hash": "08d30b37dd0420dc805dbbae5ad04b913b4dadf53748a313b7933f577d02ca40"
+    },
+    {
+      "key": "ui.auto.3bddd02dc550",
+      "source": " natively on Vulkan",
+      "source_hash": "4bcc3852abc2d11755fcaaa3e6feb2529399e9c5a70236f9129a4490f5428e73"
+    },
+    {
+      "key": "ui.auto.956d0a6e5867",
+      "source": "Running natively on Vulkan - %llu frames%s",
+      "source_hash": "0fe1a53e1b078fd7e97fcfe02c5c98ae1bb560df521472af2f569048bc7add22"
+    },
+    {
+      "key": "ui.auto.2905d824f6c8",
+      "source": "Running.%s",
+      "source_hash": "e38b8b1c5630e3e411119a2fa6a469a5292767cb14cd5ef1605b726bc47541f9"
+    },
+    {
+      "key": "ui.auto.188c60e86e6b",
+      "source": "The whole pass: the staging copies and the resolve as well as the\nmodel. Timing only the model would flatter the number.\n\nCompare it against the frame time at the bottom of this window to\nsee what it is costing you.",
+      "source_hash": "6b2fa8c8663e891d73386b5eaaed2361e8e527ede2a0c041269a97b73e2c69a7"
+    },
+    {
+      "key": "ui.auto.5832c01623d1",
+      "source": "Model resolution",
+      "source_hash": "04f177dbc56b515a7492013ddafc326500b10a09ee50c891342c11481063d3b9"
+    },
+    {
+      "key": "ui.auto.3eaea8cfe702",
+      "source": "Supersampling %.2fx: the model runs ABOVE native, then\nis sampled back down. Experimental, and costly -- time grows with the area.",
+      "source_hash": "7827c219a5ca4a87840f9dc0a93193af93f11531d387d46cb0a30c61ab730efe"
+    },
+    {
+      "key": "ui.auto.7bd67fef9d30",
+      "source": "Downscaler (NR)",
+      "source_hash": "a6b77a140a21fb288af9dbc1b1e6d4585b0f2976830018a0fbea1aa7df4549a7"
+    },
+    {
+      "key": "ui.auto.17525ce70bb2",
+      "source": "Enlargement",
+      "source_hash": "4434bb35d2b7471d1c485e004c048dc1931aea68d3ad4e4af1804bf9171d0c68"
+    },
+    {
+      "key": "ui.auto.eb4f619deb13",
+      "source": "How much of it lands",
+      "source_hash": "3e56aedd7190496e523030105d34b5568c4836c069f3c56c55eaa83459c7239d"
+    },
+    {
+      "key": "ui.auto.4a7cac450c24",
+      "source": "Detail strength",
+      "source_hash": "5d1358b8500ff7f52c798c09ad77e3f488b1d1a2b52280bdea6360f0590eb2a3"
+    },
+    {
+      "key": "ui.auto.ceaeec296e21",
+      "source": "Reset##detail",
+      "source_hash": "5b00bd7fbc0f4b896fdc9a9c837d94e5f2022e624ff30adaea9a1dfd88987206"
+    },
+    {
+      "key": "ui.auto.4d0b6747ca08",
+      "source": "Colour strength",
+      "source_hash": "d9bf921b2ee52ff5ed71ced2f9c894ffe315395686a179f8bdaade73f73dfc3e"
+    },
+    {
+      "key": "ui.auto.e5e1e6d9a2b6",
+      "source": "Reset##colour",
+      "source_hash": "2f3e927326ff2dd5e6f76f2d3e2f92d3ae2b7114708bf576dad0abb00c2ad3e0"
+    },
+    {
+      "key": "ui.auto.57317d75d36c",
+      "source": "Reversible proxy (experimental)",
+      "source_hash": "2fd5d1c61e39ed91857d184794f4cc1b48a32dbbd15611a595b809ea41532e8e"
+    },
+    {
+      "key": "ui.auto.68c2cc7f0cea",
+      "source": "Model",
+      "source_hash": "5e2c614c23f02239bc03c6c04fcb681950f9e72bf8fdff6be79c79841cbb10c0"
+    },
+    {
+      "key": "ui.auto.4c75d800cc10",
+      "source": "Read when the model is built, so a change rebuilds it after a moment.",
+      "source_hash": "c22d28171941e26368e8dea7490c6fbc0857c6162e6a10229790328eba271ff6"
+    },
+    {
+      "key": "ui.auto.d0f1caca690b",
+      "source": "Model preset",
+      "source_hash": "5cfcd0c26aac980133165f7abb9049eb36b381628f76ce69675c8b3bb3608aff"
+    },
+    {
+      "key": "ui.auto.99a0efc6cfd8",
+      "source": "Style",
+      "source_hash": "7e744141b40ea5501412e42c8b40fd0b05f1608aa2e4073944ccccbd82f24ee8"
+    },
+    {
+      "key": "ui.auto.ef2eb4d3ae8e",
+      "source": "The model was trained on finished, sRGB-encoded frames. The upscaler's\noutput is not one: it is linear and open-ended. These decide how it is\nmapped into something the model recognises. A frame the game reports as\nalready tone-mapped is passed over untouched and none of this applies.",
+      "source_hash": "1cffb9f71086704c2a95e7adaa92615aa11815b3d39cdc9a29c08f0193dd86a3"
+    },
+    {
+      "key": "ui.auto.6c5f0776088b",
+      "source": "White point from",
+      "source_hash": "c18257df4c83ff5b77479737b76932bdaa6774701e28eb0146ec24e5fe2d1637"
+    },
+    {
+      "key": "ui.auto.6e5d02ba48f2",
+      "source": "Waiting for a frame...",
+      "source_hash": "2006c00dee733c844ce21a77cee9668ed80c11dc5050c1ba74ea3db9693fb8b1"
+    },
+    {
+      "key": "ui.auto.6017572ba18a",
+      "source": "This game supplies no exposure -- paper white is in use. Try the scan instead.",
+      "source_hash": "8f7a6b545fffd9bb1c7ddd632a19d537b8411818bdb41e34ee03ecd27213bb9d"
+    },
+    {
+      "key": "ui.auto.e4de816e87fa",
+      "source": "This game supplies an exposure and it is being read.",
+      "source_hash": "f4b9113af7a4f8823bdd78a7e5abf5e2d11d2d22e39a8ba1ca976e560d48ff18"
+    },
+    {
+      "key": "ui.auto.84d8fc9e2d7e",
+      "source": "Game exposure %.4f  ->  white point %.2f%s",
+      "source_hash": "c400c42a785f8ea702e6ef762147ff655fce1a46db5ad93bc249d7e1f479743c"
+    },
+    {
+      "key": "ui.auto.28f73a0090c9",
+      "source": "  (held: absent this frame)",
+      "source_hash": "fcf0b2343ae35364cfdf001495dc80e780c5928766891fb7c4d3c014869f71a4"
+    },
+    {
+      "key": "ui.auto.b34e5f68455c",
+      "source": "Reading the exposure...",
+      "source_hash": "248106b039734c5264fef612ac602b47241f2e2a4a940caf3b53d553f346455e"
+    },
+    {
+      "key": "ui.auto.d5f7c18fd839",
+      "source": "Nothing in this game is shaped like an exposure.",
+      "source_hash": "25f7d42bb74b042582ae78658c82d0c2c1d7f8c5a2e2ac60f12bbe35255df80f"
+    },
+    {
+      "key": "ui.auto.df85db7e2680",
+      "source": "Watching %u, none moving yet -- go between light and shade.",
+      "source_hash": "b3d18569c33e2f76ff859c6981cb29ff262eeb7407ba1c22384bdf6dba03998d"
+    },
+    {
+      "key": "ui.auto.c47597f65ba6",
+      "source": "Found one. Set paper white below until the picture looks right, then press Anchor here.",
+      "source_hash": "df84d019e12923f03291a16516653ccd9fdc77a8e2fa972e4503fe8418949a0f"
+    },
+    {
+      "key": "ui.auto.434c0e82a71b",
+      "source": "This game supplies an exposure -- the option above would use it.",
+      "source_hash": "9b816a1702f812d98bc4e4907b7301ec73ce855488661b31beefb14d0663d1f7"
+    },
+    {
+      "key": "ui.auto.f0afd36e1841",
+      "source": "Scan %.5f  ->  white point %.2f   (%u point%s)",
+      "source_hash": "a65ded19dde5aab096b4e0fb4466d59ea9f1ed492b15f0ca43ba7f92c0699ebd"
+    },
+    {
+      "key": "ui.auto.a0f1490a20d0",
+      "source": "s",
+      "source_hash": "043a718774c572bd8a25adbeb1bfcd5c0256ae11cecf9f9c3f925d0e52beaf89"
+    },
+    {
+      "key": "ui.auto.c83db3e058f1",
+      "source": "Trim (x the scan)",
+      "source_hash": "5f4c04b317bccd77695473b45f36120d67c6502b8497dabd174a48d7fe9b1e1c"
+    },
+    {
+      "key": "ui.auto.d3eb585acf24",
+      "source": "Reset##scantrim",
+      "source_hash": "893efe0343e72fdb29f4e0adaec54563bd7a44803994dac727b38fdf8329f759"
+    },
+    {
+      "key": "ui.auto.826cee1e2d3e",
+      "source": "Reset##wptrim",
+      "source_hash": "34cf853ef6434f2400155d43b9df4e09487b5551fe7540746e22af43f5c7930e"
+    },
+    {
+      "key": "ui.auto.a7b853038cf3",
+      "source": "Paper white",
+      "source_hash": "f9c74fbec990a8a0d925842c68e4d083a996bbe03c3a55b252fc8ccbc39e2eae"
+    },
+    {
+      "key": "ui.auto.c70fb868c7b1",
+      "source": "Highlight guard",
+      "source_hash": "1ed0a7bc53a1b026738974b61f7da0d11a51f86a7839039b280dd9485399fe9a"
+    },
+    {
+      "key": "ui.auto.f9155caf8386",
+      "source": "Reset##guard",
+      "source_hash": "ff48c37b8b07768e47ab04ae0ab85a314f12c75390f40ccd12e56b246d4366d6"
+    },
+    {
+      "key": "ui.auto.9e791d6498ac",
+      "source": "Show the light meter on screen",
+      "source_hash": "33ba0bb8713bb3213a4ce767728fba4203c4fa0d42ad94e4e91995589f37931e"
+    },
+    {
+      "key": "ui.auto.5812e0d26182",
+      "source": "Anchor here",
+      "source_hash": "14c0eead4af249329d83114ea60d5e8bccfad2c81fca418932e6627f85415a58"
+    },
+    {
+      "key": "ui.auto.eac50e404aa5",
+      "source": "(the scan is only watching -- the white point above comes from somewhere else)",
+      "source_hash": "1a8832eb88133e0bfb018a43f39474144a1ec1a7577f55f1ad542d099a1089d5"
+    },
+    {
+      "key": "ui.auto.11f6ad8ec52a",
+      "source": "x",
+      "source_hash": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881"
+    },
+    {
+      "key": "ui.auto.fd7b6ed3447f",
+      "source": "Click a row to edit it with the slider above; click it again to control the live point. > is the point in use now.",
+      "source_hash": "ca42864bcba4a5097e4c5139f10929fdf54643b039977be157d7f12ac181cd50"
+    },
+    {
+      "key": "ui.auto.10642b6c2bdf",
+      "source": "The number runs the other way",
+      "source_hash": "8ab2093681bf386c035ff2f3d4eff3c8cf6ffc62f7dd8b97d942eeb62e3ea3ec"
+    },
+    {
+      "key": "ui.auto.f16fe627a8d4",
+      "source": "nothing matched yet.",
+      "source_hash": "57586e7e7162e47c137f2908f51709a7b3d38f220af2b0c718916a781f168748"
+    },
+    {
+      "key": "ui.auto.b80f9dd2b6f7",
+      "source": "%zu. %s -- not read yet",
+      "source_hash": "d6f808ff8842e16b42c3386dbbc21b7646ce0cf4b4dc8230d2b4eeb6c6802af0"
+    },
+    {
+      "key": "ui.auto.51434bf92639",
+      "source": "%zu. %s = %.5f  (seen %.5f..%.5f) %s",
+      "source_hash": "ae643386d3ad286108cfdbcffee7971f93b889895cb2fd5377b144f03edb22a9"
+    },
+    {
+      "key": "ui.auto.0790bd260240",
+      "source": "MOVES",
+      "source_hash": "1fa1f999236c6957f7e21dd84eb10964487197771d87b46160f6ed15cba74550"
+    },
+    {
+      "key": "ui.auto.1ceef8c0bcd0",
+      "source": "flat so far",
+      "source_hash": "8db65c2d156a4c1fc105b66ec226900f6f5f58f0180229cf3a8cc9e1a5f000b2"
+    },
+    {
+      "key": "ui.auto.b239cd985f7c",
+      "source": "Walk from shade into daylight. A real exposure moves.",
+      "source_hash": "dda908936cff8d0300eebc6e1469b92969130ee36c4488efb43fb721f4c697bb"
+    },
+    {
+      "key": "ui.auto.048da2ade41a",
+      "source": "One that only ever climbs is a counter, not an exposure.",
+      "source_hash": "2ae2e34bc48d509be17190c33b661156c3ac44be9ee87c5dc8e4958bd1014fc9"
+    },
+    {
+      "key": "ui.auto.8d105cf44d39",
+      "source": "Compare",
+      "source_hash": "e888155d8c7d2e3c3f9eb1bf57e8d81ba1a3c182b5e94b01e09de2cb2cca81f9"
+    },
+    {
+      "key": "ui.auto.dbc16b0ecdc2",
+      "source": "Hold frame",
+      "source_hash": "21076652231b08e40f664e2cde6d4fc6c5b6aa1d38430313597cc3622faa5259"
+    },
+    {
+      "key": "ui.auto.89376e096de8",
+      "source": "Swap sides",
+      "source_hash": "f2059d5584e95337ca4faf0d2f0b7287b366c12d05cf43367ce1d54eb4ba726f"
+    },
+    {
+      "key": "ui.auto.14345f86a7f4",
+      "source": "Label the sides",
+      "source_hash": "0951ff1b188d41f66cc835ad3e148319f4c8b3f31e007732f575273d734f7912"
+    },
+    {
+      "key": "ui.auto.f6a3ad4a5b9b",
+      "source": "Label size",
+      "source_hash": "4afd9a94e7ac2c3fbb22548a376ccc8b4161b5499fc7ee8e0638b9704d94e4d7"
+    },
+    {
+      "key": "ui.auto.9b3cbed5c490",
+      "source": "Zoom",
+      "source_hash": "509c517ede79fef060a5f3a109fd1f45951eef2c7970b25c20992011e36a4070"
+    },
+    {
+      "key": "ui.auto.fc8230b4119a",
+      "source": "Split",
+      "source_hash": "32afaa784333648025e24b162bece7474051bcaaa29e98e19922b400b4ceb04b"
+    },
+    {
+      "key": "ui.auto.63858078d09a",
+      "source": "Debug view",
+      "source_hash": "e155055adb362af48dc9b69236c93f62a81f5774dc59b65f6304b6f7ac873058"
+    },
+    {
+      "key": "ui.auto.e3de5ab0ca4c",
+      "source": "Off",
+      "source_hash": "ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1"
+    },
+    {
+      "key": "ui.auto.fd0816e5b5c5",
+      "source": "%.2f ms",
+      "source_hash": "9a6f47397546f5b6ed84296ad0fec41551b726c2435805b3ce23e665b8415059"
+    },
+    {
+      "key": "ui.auto.b9112cf8e1b3",
+      "source": "DlssNrExposureScan",
+      "source_hash": "5c75f1b87c1b14d6960e3321fed085189c6948cfe85bd9c500d3525b443b4303"
+    },
+    {
+      "key": "ui.auto.19700482e2de",
+      "source": "%3.0f%%  %.5f",
+      "source_hash": "e22915aa221ef233b4a59ab4afdad141e3c7a209d6e51d267ce60191f9ba3108"
+    }
+  ],
   "changed": []
 }
