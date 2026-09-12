@@ -89,6 +89,9 @@ class LoclibTests(unittest.TestCase):
         got = find_candidates(text, 'OptiScaler/menu/menu_common.cpp', RULES)
         self.assertIn('ON {}x', [x.source for x in got])
 
+    def test_plain_percentage_prose_is_not_printf_token(self):
+        self.assertEqual(printf_tokens("~2-4% additional GPU latency reduction"), [])
+
     def test_printf_and_std_format_tokens(self):
         self.assertEqual(printf_tokens('FPS %6.2f / %s / %%'), ['%6.2f', '%s', '%%'])
         self.assertEqual(format_tokens('Value {} / {:.2f} / {name} / {0:04X}'), ['{}', '{:.2f}', '{name}', '{0:04X}'])

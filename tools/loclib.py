@@ -488,8 +488,16 @@ def iter_source_files(source_root: Path, rules: dict) -> Iterable[Path]:
 
 def printf_tokens(s: str):
     # Preserve %% and positional/width modifiers sufficiently for validation.
-    return re.findall(r'%(?:\d+\$)?[-+#0 \'I]*(?:\d+|\*)?(?:\.\d+|\.\*)?(?:hh|h|ll|l|j|z|t|L)?[diuoxXfFeEgGaAcspn%]', s)
-
+    # Plain prose percentages such as "2-4% additional" can otherwise look
+    # like the valid printf token "% a" (space flag + hex-float specifier).
+    pattern = re.compile(r'%(?:\d+\$)?[-+#0 \'I]*(?:\d+|\*)?(?:\.\d+|\.\*)?(?:hh|h|ll|l|j|z|t|L)?[diuoxXfFeEgGaAcspn%]')
+    tokens=[]
+    for m in pattern.finditer(s):
+        token=m.group(0)
+        if m.start()>0 and s[m.start()-1].isdigit() and token.startswith('% '):
+            continue
+        tokens.append(token)
+    return tokens
 def format_tokens(s: str):
     # std::format/fmt supports automatic fields (`{}` / `{:.2f}`), indexed
     # fields and named fields. Escaped braces (`{{` / `}}`) are not tokens.

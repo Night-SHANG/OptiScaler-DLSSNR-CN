@@ -6329,6 +6329,426 @@
       "state": "machine_translated",
       "source_hash": "bbfb7f0e74a06092802bc836ab5bf2bca33199ed6b229612632688adc80a59bf",
       "note": "fork-specific seed; review welcome"
+    },
+    "ui.auto.28f73a0090c9": {
+      "text": "  （保持：本帧缺失）",
+      "state": "machine_translated",
+      "source_hash": "fcf0b2343ae35364cfdf001495dc80e780c5928766891fb7c4d3c014869f71a4",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.3bddd02dc550": {
+      "text": "（Vulkan 原生）",
+      "state": "machine_translated",
+      "source_hash": "4bcc3852abc2d11755fcaaa3e6feb2529399e9c5a70236f9129a4490f5428e73",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.fd0816e5b5c5": {
+      "text": "%.2f ms",
+      "state": "machine_translated",
+      "source_hash": "9a6f47397546f5b6ed84296ad0fec41551b726c2435805b3ce23e665b8415059",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.19700482e2de": {
+      "text": "%3.0f%%  %.5f",
+      "state": "machine_translated",
+      "source_hash": "e22915aa221ef233b4a59ab4afdad141e3c7a209d6e51d267ce60191f9ba3108",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.b80f9dd2b6f7": {
+      "text": "%zu. %s —— 尚未读取",
+      "state": "machine_translated",
+      "source_hash": "d6f808ff8842e16b42c3386dbbc21b7646ce0cf4b4dc8230d2b4eeb6c6802af0",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.51434bf92639": {
+      "text": "%zu. %s = %.5f（已观测 %.5f..%.5f）%s",
+      "state": "machine_translated",
+      "source_hash": "ae643386d3ad286108cfdbcffee7971f93b889895cb2fd5377b144f03edb22a9",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.eac50e404aa5": {
+      "text": "（扫描仅用于监测——上方白点来自其他来源）",
+      "state": "machine_translated",
+      "source_hash": "1a8832eb88133e0bfb018a43f39474144a1ec1a7577f55f1ad542d099a1089d5",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.5812e0d26182": {
+      "text": "在此锚定",
+      "state": "machine_translated",
+      "source_hash": "14c0eead4af249329d83114ea60d5e8bccfad2c81fca418932e6627f85415a58",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.eeecf231fcf4": {
+      "text": "应用模型",
+      "state": "machine_translated",
+      "source_hash": "aa52b88a569d9b8e7403cb85f0dd2c03e895624af7c6ee5c3c5c9fc1bcdb99d1",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.0a5f6f2d5ea1": {
+      "text": "可通过快捷键切换——请在“按键绑定”中的“神经渲染”项设置。",
+      "state": "machine_translated",
+      "source_hash": "75b8ae722b96e1b3c49748f84c26c54d958f806c88700d587d7c465500657be2",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.fd7b6ed3447f": {
+      "text": "单击一行后可用上方滑块编辑；再次单击可切回实时点控制。> 表示当前正在使用的点。",
+      "state": "machine_translated",
+      "source_hash": "ca42864bcba4a5097e4c5139f10929fdf54643b039977be157d7f12ac181cd50",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.4d0b6747ca08": {
+      "text": "颜色强度",
+      "state": "machine_translated",
+      "source_hash": "d9bf921b2ee52ff5ed71ced2f9c894ffe315395686a179f8bdaade73f73dfc3e",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.8d105cf44d39": {
+      "text": "对比",
+      "state": "machine_translated",
+      "source_hash": "e888155d8c7d2e3c3f9eb1bf57e8d81ba1a3c182b5e94b01e09de2cb2cca81f9",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.63858078d09a": {
+      "text": "调试视图",
+      "state": "machine_translated",
+      "source_hash": "e155055adb362af48dc9b69236c93f62a81f5774dc59b65f6304b6f7ac873058",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.4a7cac450c24": {
+      "text": "细节强度",
+      "state": "machine_translated",
+      "source_hash": "5d1358b8500ff7f52c798c09ad77e3f488b1d1a2b52280bdea6360f0590eb2a3",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.b9112cf8e1b3": {
+      "text": "DlssNrExposureScan",
+      "state": "machine_translated",
+      "source_hash": "5c75f1b87c1b14d6960e3321fed085189c6948cfe85bd9c500d3525b443b4303",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.7bd67fef9d30": {
+      "text": "降采样器（NR）",
+      "state": "machine_translated",
+      "source_hash": "a6b77a140a21fb288af9dbc1b1e6d4585b0f2976830018a0fbea1aa7df4549a7",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.17525ce70bb2": {
+      "text": "放大倍率",
+      "state": "machine_translated",
+      "source_hash": "4434bb35d2b7471d1c485e004c048dc1931aea68d3ad4e4af1804bf9171d0c68",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.1ceef8c0bcd0": {
+      "text": "目前无变化",
+      "state": "machine_translated",
+      "source_hash": "8db65c2d156a4c1fc105b66ec226900f6f5f58f0180229cf3a8cc9e1a5f000b2",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.c47597f65ba6": {
+      "text": "已找到一个候选项。调整下方“纸白”直到画面合适，然后点击“在此锚定”。",
+      "state": "machine_translated",
+      "source_hash": "df84d019e12923f03291a16516653ccd9fdc77a8e2fa972e4503fe8418949a0f",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.84d8fc9e2d7e": {
+      "text": "游戏曝光 %.4f  →  白点 %.2f%s",
+      "state": "machine_translated",
+      "source_hash": "c400c42a785f8ea702e6ef762147ff655fce1a46db5ad93bc249d7e1f479743c",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.c70fb868c7b1": {
+      "text": "高光保护",
+      "state": "machine_translated",
+      "source_hash": "1ed0a7bc53a1b026738974b61f7da0d11a51f86a7839039b280dd9485399fe9a",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.dbc16b0ecdc2": {
+      "text": "冻结画面",
+      "state": "machine_translated",
+      "source_hash": "21076652231b08e40f664e2cde6d4fc6c5b6aa1d38430313597cc3622faa5259",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.eb4f619deb13": {
+      "text": "最终应用比例",
+      "state": "machine_translated",
+      "source_hash": "3e56aedd7190496e523030105d34b5568c4836c069f3c56c55eaa83459c7239d",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.f6a3ad4a5b9b": {
+      "text": "标签大小",
+      "state": "machine_translated",
+      "source_hash": "4afd9a94e7ac2c3fbb22548a376ccc8b4161b5499fc7ee8e0638b9704d94e4d7",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.14345f86a7f4": {
+      "text": "显示两侧标签",
+      "state": "machine_translated",
+      "source_hash": "0951ff1b188d41f66cc835ad3e148319f4c8b3f31e007732f575273d734f7912",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.68c2cc7f0cea": {
+      "text": "模型",
+      "state": "machine_translated",
+      "source_hash": "5e2c614c23f02239bc03c6c04fcb681950f9e72bf8fdff6be79c79841cbb10c0",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.d0f1caca690b": {
+      "text": "模型预设",
+      "state": "machine_translated",
+      "source_hash": "5cfcd0c26aac980133165f7abb9049eb36b381628f76ce69675c8b3bb3608aff",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.5832c01623d1": {
+      "text": "模型分辨率",
+      "state": "machine_translated",
+      "source_hash": "04f177dbc56b515a7492013ddafc326500b10a09ee50c891342c11481063d3b9",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.0790bd260240": {
+      "text": "有变化",
+      "state": "machine_translated",
+      "source_hash": "1fa1f999236c6957f7e21dd84eb10964487197771d87b46160f6ed15cba74550",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.d5f7c18fd839": {
+      "text": "未在此游戏中找到符合曝光特征的数值。",
+      "state": "machine_translated",
+      "source_hash": "25f7d42bb74b042582ae78658c82d0c2c1d7f8c5a2e2ac60f12bbe35255df80f",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.f16fe627a8d4": {
+      "text": "尚未匹配到候选项。",
+      "state": "machine_translated",
+      "source_hash": "57586e7e7162e47c137f2908f51709a7b3d38f220af2b0c718916a781f168748",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.e3de5ab0ca4c": {
+      "text": "关闭",
+      "state": "machine_translated",
+      "source_hash": "ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.8b1e6cce1caa": {
+      "text": "本次会话已关闭：%s。",
+      "state": "machine_translated",
+      "source_hash": "83020a0e8272927de301f3beb66b4508434648e38f2d2fe691f3c0c809bbdc5f",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.5194522843a0": {
+      "text": "已关闭。模型仍保持加载，因此重新开启会立即生效。",
+      "state": "machine_translated",
+      "source_hash": "f54db35f42976fc04f0e0af177855cd080d4012b819ae8966d005160604cf703",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.048da2ade41a": {
+      "text": "只会持续上升的数值是计数器，不是曝光值。",
+      "state": "machine_translated",
+      "source_hash": "2ae2e34bc48d509be17190c33b661156c3ac44be9ee87c5dc8e4958bd1014fc9",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.a7b853038cf3": {
+      "text": "纸白",
+      "state": "machine_translated",
+      "source_hash": "f9c74fbec990a8a0d925842c68e4d083a996bbe03c3a55b252fc8ccbc39e2eae",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.4c75d800cc10": {
+      "text": "在构建模型时读取，因此修改后会在片刻后重新构建模型。",
+      "state": "machine_translated",
+      "source_hash": "c22d28171941e26368e8dea7490c6fbc0857c6162e6a10229790328eba271ff6",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.b34e5f68455c": {
+      "text": "正在读取曝光……",
+      "state": "machine_translated",
+      "source_hash": "248106b039734c5264fef612ac602b47241f2e2a4a940caf3b53d553f346455e",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.e5e1e6d9a2b6": {
+      "text": "重置##colour",
+      "state": "machine_translated",
+      "source_hash": "2f3e927326ff2dd5e6f76f2d3e2f92d3ae2b7114708bf576dad0abb00c2ad3e0",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.ceaeec296e21": {
+      "text": "重置##detail",
+      "state": "machine_translated",
+      "source_hash": "5b00bd7fbc0f4b896fdc9a9c837d94e5f2022e624ff30adaea9a1dfd88987206",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.f9155caf8386": {
+      "text": "重置##guard",
+      "state": "machine_translated",
+      "source_hash": "ff48c37b8b07768e47ab04ae0ab85a314f12c75390f40ccd12e56b246d4366d6",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.d3eb585acf24": {
+      "text": "重置##scantrim",
+      "state": "machine_translated",
+      "source_hash": "893efe0343e72fdb29f4e0adaec54563bd7a44803994dac727b38fdf8329f759",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.826cee1e2d3e": {
+      "text": "重置##wptrim",
+      "state": "machine_translated",
+      "source_hash": "34cf853ef6434f2400155d43b9df4e09487b5551fe7540746e22af43f5c7930e",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.9f5cd8a2e880": {
+      "text": "重试",
+      "state": "machine_translated",
+      "source_hash": "942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.57317d75d36c": {
+      "text": "可逆代理（实验性）",
+      "state": "machine_translated",
+      "source_hash": "2fd5d1c61e39ed91857d184794f4cc1b48a32dbbd15611a595b809ea41532e8e",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.956d0a6e5867": {
+      "text": "正在 Vulkan 原生路径运行 - %llu 帧%s",
+      "state": "machine_translated",
+      "source_hash": "0fe1a53e1b078fd7e97fcfe02c5c98ae1bb560df521472af2f569048bc7add22",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.d4f86f834968": {
+      "text": "运行中%s - 每帧 %.2f ms%s",
+      "state": "machine_translated",
+      "source_hash": "08d30b37dd0420dc805dbbae5ad04b913b4dadf53748a313b7933f577d02ca40",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.2905d824f6c8": {
+      "text": "运行中。%s",
+      "state": "machine_translated",
+      "source_hash": "e38b8b1c5630e3e411119a2fa6a469a5292767cb14cd5ef1605b726bc47541f9",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.a0f1490a20d0": {
+      "text": "s",
+      "state": "machine_translated",
+      "source_hash": "043a718774c572bd8a25adbeb1bfcd5c0256ae11cecf9f9c3f925d0e52beaf89",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.f0afd36e1841": {
+      "text": "扫描 %.5f  →  白点 %.2f（%u 个点%s）",
+      "state": "machine_translated",
+      "source_hash": "a65ded19dde5aab096b4e0fb4466d59ea9f1ed492b15f0ca43ba7f92c0699ebd",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.9e791d6498ac": {
+      "text": "在屏幕上显示测光表",
+      "state": "machine_translated",
+      "source_hash": "33ba0bb8713bb3213a4ce767728fba4203c4fa0d42ad94e4e91995589f37931e",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.fc8230b4119a": {
+      "text": "分割线",
+      "state": "machine_translated",
+      "source_hash": "32afaa784333648025e24b162bece7474051bcaaa29e98e19922b400b4ceb04b",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.99a0efc6cfd8": {
+      "text": "风格",
+      "state": "machine_translated",
+      "source_hash": "7e744141b40ea5501412e42c8b40fd0b05f1608aa2e4073944ccccbd82f24ee8",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.3eaea8cfe702": {
+      "text": "超级采样 %.2fx：模型会以高于原生分辨率运行，然后\n再采样回目标分辨率。实验性功能，开销很高——耗时会随像素面积增加。",
+      "state": "machine_translated",
+      "source_hash": "7827c219a5ca4a87840f9dc0a93193af93f11531d387d46cb0a30c61ab730efe",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.89376e096de8": {
+      "text": "交换两侧",
+      "state": "machine_translated",
+      "source_hash": "f2059d5584e95337ca4faf0d2f0b7287b366c12d05cf43367ce1d54eb4ba726f",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.ef2eb4d3ae8e": {
+      "text": "该模型基于已完成、采用 sRGB 编码的画面训练。超分器的\n输出并不是这种格式：它是线性的且范围开放。这里的设置决定如何将其\n映射为模型能够识别的输入。如果游戏报告某帧已经完成色调映射，\n则会原样跳过，这些设置不会应用。",
+      "state": "machine_translated",
+      "source_hash": "1cffb9f71086704c2a95e7adaa92615aa11815b3d39cdc9a29c08f0193dd86a3",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.10642b6c2bdf": {
+      "text": "该数值变化方向相反",
+      "state": "machine_translated",
+      "source_hash": "8ab2093681bf386c035ff2f3d4eff3c8cf6ffc62f7dd8b97d942eeb62e3ea3ec",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.188c60e86e6b": {
+      "text": "统计整个 Pass：包括暂存复制、解析以及\n模型本身。只统计模型会让数值显得过于乐观。\n\n请与此窗口底部的帧时间对比，\n以判断它实际带来的开销。",
+      "state": "machine_translated",
+      "source_hash": "6b2fa8c8663e891d73386b5eaaed2361e8e527ede2a0c041269a97b73e2c69a7",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.434c0e82a71b": {
+      "text": "此游戏提供曝光值——上方选项可以使用它。",
+      "state": "machine_translated",
+      "source_hash": "9b816a1702f812d98bc4e4907b7301ec73ce855488661b31beefb14d0663d1f7",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.e4de816e87fa": {
+      "text": "此游戏提供曝光值，当前正在读取。",
+      "state": "machine_translated",
+      "source_hash": "f4b9113af7a4f8823bdd78a7e5abf5e2d11d2d22e39a8ba1ca976e560d48ff18",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.6017572ba18a": {
+      "text": "此游戏不提供曝光值——当前使用纸白。可以尝试改用扫描。",
+      "state": "machine_translated",
+      "source_hash": "8f7a6b545fffd9bb1c7ddd632a19d537b8411818bdb41e34ee03ecd27213bb9d",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.c83db3e058f1": {
+      "text": "微调（扫描值倍数）",
+      "state": "machine_translated",
+      "source_hash": "5f4c04b317bccd77695473b45f36120d67c6502b8497dabd174a48d7fe9b1e1c",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.6e5d02ba48f2": {
+      "text": "正在等待画面帧……",
+      "state": "machine_translated",
+      "source_hash": "2006c00dee733c844ce21a77cee9668ed80c11dc5050c1ba74ea3db9693fb8b1",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.5b2639a6e005": {
+      "text": "正在等待超分器运行。",
+      "state": "machine_translated",
+      "source_hash": "b61d7e71264d24faf7e3551b2f57f7c29fe1abb39e0c27e6cfd998955d4d57e9",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.b239cd985f7c": {
+      "text": "从阴影走到明亮区域。真实曝光值会发生变化。",
+      "state": "machine_translated",
+      "source_hash": "dda908936cff8d0300eebc6e1469b92969130ee36c4488efb43fb721f4c697bb",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.df85db7e2680": {
+      "text": "正在监测 %u 个候选项，目前都没有变化——请在明暗区域之间移动。",
+      "state": "machine_translated",
+      "source_hash": "b3d18569c33e2f76ff859c6981cb29ff262eeb7407ba1c22384bdf6dba03998d",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.6c5f0776088b": {
+      "text": "白点来源",
+      "state": "machine_translated",
+      "source_hash": "c18257df4c83ff5b77479737b76932bdaa6774701e28eb0146ec24e5fe2d1637",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.11f6ad8ec52a": {
+      "text": "x",
+      "state": "machine_translated",
+      "source_hash": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.9b3cbed5c490": {
+      "text": "缩放",
+      "state": "machine_translated",
+      "source_hash": "509c517ede79fef060a5f3a109fd1f45951eef2c7970b25c20992011e36a4070",
+      "note": "completed fork-specific UI translation 2026-09-12"
     }
   }
 }
