@@ -1,0 +1,148 @@
+name: Upstream Sync - OptiScaler DLSSNR CN
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths:
+      - "Localization/stable/**"
+      - ".github/workflows/upstream-sync.yml"
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect localization catalog bootstrap
+        id: catalog_state
+        shell: bash
+        run: |
+          python - <<'PYBOOT'
+          import json
+          import os
+          from pathlib import Path
+
+          def has_entries(channel: str) -> bool:
+              path = Path("Localization") / channel / "catalog.json"
+              if not path.is_file():
+                  return False
+              try:
+                  data = json.loads(path.read_text(encoding="utf-8"))
+              except Exception:
+                  return False
+              return bool(data.get("entries"))
+
+          bootstrap = not (has_entries("master") and has_entries("stable"))
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+              f.write(f"bootstrap_needed={'true' if bootstrap else 'false'}\n")
+          PYBOOT
+
+      - name: Resolve official upstream state
+        id: upstream
+        run: python tools/upstream_status.py --json-out reports/upstream-status.json --github-output "$GITHUB_OUTPUT"
+
+      - name: Materialize official master for scan
+        if: steps.upstream.outputs.branch_changed == 'true' || steps.upstream.outputs.stable_release_changed == 'true' || github.event_name == 'workflow_dispatch' || steps.catalog_state.outputs.bootstrap_needed == 'true'
+        run: python tools/prepare_tree.py --worktree _upstream_master --ref "${{ steps.upstream.outputs.branch_sha }}" --no-submodules
+
+      - name: Scan master UI
+        if: steps.upstream.outputs.branch_changed == 'true' || steps.upstream.outputs.stable_release_changed == 'true' || github.event_name == 'workflow_dispatch' || steps.catalog_state.outputs.bootstrap_needed == 'true'
+        run: python tools/scan_ui.py --source _upstream_master --channel master --upstream-ref "${{ steps.upstream.outputs.branch_sha }}" --update --report reports/master-localization-scan.md
+
+      - name: Materialize official stable for scan
+        if: steps.upstream.outputs.stable_tag != '' && (steps.upstream.outputs.branch_changed == 'true' || steps.upstream.outputs.stable_release_changed == 'true' || github.event_name == 'workflow_dispatch' || steps.catalog_state.outputs.bootstrap_needed == 'true')
+        run: python tools/prepare_tree.py --worktree _upstream_stable --ref "${{ steps.upstream.outputs.stable_tag }}" --no-submodules
+
+      - name: Scan stable UI
+        if: steps.upstream.outputs.stable_tag != '' && (steps.upstream.outputs.branch_changed == 'true' || steps.upstream.outputs.stable_release_changed == 'true' || github.event_name == 'workflow_dispatch' || steps.catalog_state.outputs.bootstrap_needed == 'true')
+        run: python tools/scan_ui.py --source _upstream_stable --channel stable --upstream-ref "${{ steps.upstream.outputs.stable_tag }}" --update --report reports/stable-localization-scan.md
+
+      - name: Optional incremental machine translation
+        continue-on-error: true
+        if: steps.upstream.outputs.branch_changed == 'true' || steps.upstream.outputs.stable_release_changed == 'true' || github.event_name == 'workflow_dispatch' || steps.catalog_state.outputs.bootstrap_needed == 'true'
+        env:
+          TRANSLATION_API_URL: ${{ secrets.TRANSLATION_API_URL }}
+          TRANSLATION_API_KEY: ${{ secrets.TRANSLATION_API_KEY }}
+          TRANSLATION_MODEL: ${{ secrets.TRANSLATION_MODEL }}
+        run: python tools/translate_missing.py --channel all
+
+      - name: Validate both localization channels
+        if: steps.upstream.outputs.branch_changed == 'true' || steps.upstream.outputs.stable_release_changed == 'true' || github.event_name == 'workflow_dispatch' || steps.catalog_state.outputs.bootstrap_needed == 'true'
+        run: python tools/check_localization.py --channel all --strict
+
+      - name: Verify master source integration anchors
+        if: steps.upstream.outputs.branch_changed == 'true' || steps.upstream.outputs.stable_release_changed == 'true' || github.event_name == 'workflow_dispatch' || steps.catalog_state.outputs.bootstrap_needed == 'true'
+        shell: bash
+        run: |
+          set -o pipefail
+          python tools/localize_source.py --source _upstream_master --channel master 2>&1 | tee reports/master-integration.log
+
+      - name: Verify stable source integration anchors
+        if: steps.upstream.outputs.stable_tag != '' && (steps.upstream.outputs.branch_changed == 'true' || steps.upstream.outputs.stable_release_changed == 'true' || github.event_name == 'workflow_dispatch' || steps.catalog_state.outputs.bootstrap_needed == 'true')
+        shell: bash
+        run: |
+          set -o pipefail
+          python tools/localize_source.py --source _upstream_stable --channel stable 2>&1 | tee reports/stable-integration.log
+
+      - name: Record successfully scanned upstream commit
+        if: steps.upstream.outputs.branch_changed == 'true' || github.event_name == 'workflow_dispatch' || steps.catalog_state.outputs.bootstrap_needed == 'true'
+        run: python tools/upstream_status.py --set-scanned "${{ steps.upstream.outputs.branch_sha }}"
+
+      - name: Persist localization metadata safely
+        id: persist
+        if: steps.upstream.outputs.branch_changed == 'true' || steps.upstream.outputs.stable_release_changed == 'true' || github.event_name == 'workflow_dispatch' || steps.catalog_state.outputs.bootstrap_needed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- Localization/zh-CN.json; then
+            echo "translation_changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "translation_changed=true" >> "$GITHUB_OUTPUT"
+          fi
+          if git diff --quiet -- Localization upstream.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Localization upstream.json
+          git commit -m "chore: sync Dagherbou/OptiScaler_DLSSNR master + stable catalogs"
+          git push origin "HEAD:${{ github.ref_name }}"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch clean master build
+        if: steps.upstream.outputs.branch_changed == 'true' || github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: gh workflow run build.yml --ref "${{ github.ref_name }}" -f upstream_ref="${{ steps.upstream.outputs.branch_sha }}"
+
+      - name: Dispatch stable release build when needed
+        if: steps.upstream.outputs.stable_tag != '' && (steps.upstream.outputs.stable_release_changed == 'true' || steps.persist.outputs.translation_changed == 'true')
+        shell: bash
+        run: |
+          mark_stable=false
+          if [ "${{ steps.upstream.outputs.stable_release_changed }}" = "true" ]; then mark_stable=true; fi
+          gh workflow run release.yml --ref "${{ github.ref_name }}" -f upstream_ref="${{ steps.upstream.outputs.stable_tag }}" -f prerelease=false -f mark_stable="$mark_stable"
+
+      - name: Upload sync diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7.0.0
+        with:
+          name: upstream-sync-diagnostics
+          path: reports/
+          if-no-files-found: ignore
+          retention-days: 14

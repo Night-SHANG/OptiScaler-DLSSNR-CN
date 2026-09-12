@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/Dagherbou/OptiScaler_DLSSNR.git",
+  "branch": "dlss-neural-rendering",
+  "commit": "auto",
+  "stable_release": "",
+  "last_scanned_commit": "",
+  "last_released_upstream_tag": "",
+  "distribution_name": "OptiScaler DLSSNR CN",
+  "upstream_name": "Dagherbou/OptiScaler_DLSSNR",
+  "package_prefix": "OptiScaler-DLSSNR-CN",
+  "release_prefix": "OptiScaler DLSSNR CN"
+}

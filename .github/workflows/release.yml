@@ -1,0 +1,147 @@
+name: Release OptiScaler DLSSNR CN
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "Localization/zh-CN.json"
+  workflow_dispatch:
+    inputs:
+      upstream_ref:
+        description: Fork stable tag/SHA; blank resolves latest stable release
+        required: false
+        default: ""
+      prerelease:
+        description: Publish as prerelease
+        type: boolean
+        required: true
+        default: false
+      mark_stable:
+        description: Internal sync flag; record this upstream tag as released
+        type: boolean
+        required: true
+        default: false
+
+concurrency:
+  group: release-cn-${{ inputs.upstream_ref || 'latest-stable' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-2022
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Query fork stable release
+        id: upstream
+        shell: pwsh
+        run: python tools/upstream_status.py --github-output "$env:GITHUB_OUTPUT"
+
+      - name: Resolve release ref
+        id: ref
+        shell: pwsh
+        run: |
+          $requested = "${{ inputs.upstream_ref }}"
+          if ($requested) { $ref = $requested } else { $ref = "${{ steps.upstream.outputs.stable_tag }}" }
+          if (-not $ref) { throw "No fork stable release could be resolved" }
+          "ref=$ref" >> $env:GITHUB_OUTPUT
+
+      - name: Materialize fork upstream with submodules
+        run: python tools/prepare_tree.py --worktree _upstream --ref "${{ steps.ref.outputs.ref }}"
+
+      - name: Scan and seed translations for exact release source
+        run: python tools/scan_ui.py --source _upstream --channel stable --upstream-ref "${{ steps.ref.outputs.ref }}" --update --report reports/stable-localization-scan.md
+
+      - name: Optional incremental machine translation
+        continue-on-error: true
+        env:
+          TRANSLATION_API_URL: ${{ secrets.TRANSLATION_API_URL }}
+          TRANSLATION_API_KEY: ${{ secrets.TRANSLATION_API_KEY }}
+          TRANSLATION_MODEL: ${{ secrets.TRANSLATION_MODEL }}
+        run: python tools/translate_missing.py --channel stable
+
+      - name: Validate exact release localization
+        run: python tools/check_localization.py --channel stable --strict
+
+      - name: Instrument localized release tree
+        run: python tools/localize_source.py --source _upstream --channel stable
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build DLSSNR forwarder and Release x64
+        shell: pwsh
+        run: |
+          msbuild _upstream\OptiScaler\dlssnr\forwarder\dlssnr_forwarder.vcxproj /m /p:Configuration=Release /p:Platform=x64 /verbosity:minimal
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          msbuild _upstream\OptiScaler.sln /m /p:Configuration=Release /p:Platform=x64 /verbosity:minimal
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Package
+        shell: pwsh
+        run: .\tools\package.ps1 -SourceRoot "$env:GITHUB_WORKSPACE\_upstream" -OutputDir "$env:GITHUB_WORKSPACE\dist" -UpstreamRef "${{ steps.ref.outputs.ref }}"
+
+      - name: Generate release notes and tag
+        id: notes
+        shell: pwsh
+        run: |
+          $sha=(git -C _upstream rev-parse HEAD).Trim()
+          python tools/release_notes.py --channel stable --upstream-ref "${{ steps.ref.outputs.ref }}" --upstream-commit $sha --out release-notes.md --github-output "$env:GITHUB_OUTPUT"
+          "upstream_sha=$sha" >> $env:GITHUB_OUTPUT
+
+      - name: Publish or refresh GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ steps.notes.outputs.tag }}"
+          $cfg = Get-Content upstream.json -Raw | ConvertFrom-Json
+          $title = "$($cfg.release_prefix) - ${{ steps.ref.outputs.ref }}"
+          gh release view $tag *> $null
+          $exists = $LASTEXITCODE -eq 0
+          $assets = Get-ChildItem dist\*.zip,dist\build-metadata.json
+          if ($exists) {
+            gh release edit $tag --title $title --notes-file release-notes.md
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $assets | ForEach-Object {
+              gh release upload $tag $_.FullName --clobber
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            }
+          } else {
+            $ghArgs = @("release","create",$tag) + ($assets | ForEach-Object { $_.FullName }) + @("--title",$title,"--notes-file","release-notes.md")
+            if ("${{ inputs.prerelease }}" -eq "true") { $ghArgs += "--prerelease" }
+            & gh @ghArgs
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - name: Record successfully published stable tag
+        if: inputs.mark_stable == true && inputs.prerelease == false
+        shell: pwsh
+        run: |
+          git restore Localization
+          python tools/upstream_status.py --set-released "${{ steps.ref.outputs.ref }}"
+          if (git diff --quiet -- upstream.json) { exit 0 }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add upstream.json
+          git commit -m "chore: record released upstream ${{ steps.ref.outputs.ref }}"
+          git push origin "HEAD:${{ github.ref_name }}"
+
+      - name: Upload release diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7.0.0
+        with:
+          name: release-diagnostics-${{ steps.ref.outputs.ref }}
+          path: |
+            reports/
+            release-notes.md
+          if-no-files-found: ignore
+          retention-days: 30

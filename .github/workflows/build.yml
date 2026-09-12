@@ -1,0 +1,96 @@
+name: Build OptiScaler DLSSNR CN
+
+on:
+  workflow_dispatch:
+    inputs:
+      upstream_ref:
+        description: Upstream branch/tag/SHA (blank = tracked branch)
+        required: false
+        default: ""
+  pull_request:
+  push:
+    branches: [main, master]
+    paths:
+      - "Localization/**"
+      - "overlay/**"
+      - "tools/**"
+      - ".github/workflows/**"
+      - "upstream.json"
+
+concurrency:
+  group: build-cn-${{ github.ref }}-${{ inputs.upstream_ref || 'tracked' }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2022
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Resolve upstream ref
+        id: ref
+        shell: pwsh
+        run: |
+          $cfg = Get-Content upstream.json -Raw | ConvertFrom-Json
+          $requested = "${{ inputs.upstream_ref }}"
+          if ($requested) { $ref = $requested }
+          elseif ($cfg.commit -and $cfg.commit -ne "auto") { $ref = $cfg.commit }
+          else { $ref = $cfg.branch }
+          "ref=$ref" >> $env:GITHUB_OUTPUT
+
+      - name: Materialize fork upstream with submodules
+        run: python tools/prepare_tree.py --worktree _upstream --ref "${{ steps.ref.outputs.ref }}"
+
+      - name: Scan UI into ephemeral build catalog
+        run: python tools/scan_ui.py --source _upstream --channel master --upstream-ref "${{ steps.ref.outputs.ref }}" --update --report reports/master-localization-scan.md
+
+      - name: Validate localization
+        run: python tools/check_localization.py --channel master --strict
+
+      - name: Instrument localized build tree
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path reports | Out-Null
+          python tools/localize_source.py --source _upstream --channel master 2>&1 | Tee-Object -FilePath reports\integration.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build DLSSNR forwarder and Release x64
+        shell: pwsh
+        run: |
+          msbuild _upstream\OptiScaler\dlssnr\forwarder\dlssnr_forwarder.vcxproj /m /p:Configuration=Release /p:Platform=x64 /verbosity:minimal 2>&1 | Tee-Object -FilePath reports\msbuild-forwarder.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          msbuild _upstream\OptiScaler.sln /m /p:Configuration=Release /p:Platform=x64 /verbosity:minimal 2>&1 | Tee-Object -FilePath reports\msbuild.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Package community CN build
+        shell: pwsh
+        run: .\tools\package.ps1 -SourceRoot "$env:GITHUB_WORKSPACE\_upstream" -OutputDir "$env:GITHUB_WORKSPACE\dist" -UpstreamRef "${{ steps.ref.outputs.ref }}"
+
+      - name: Upload package and scan report
+        uses: actions/upload-artifact@v7.0.0
+        with:
+          name: OptiScaler-DLSSNR-CN
+          path: |
+            dist/*.zip
+            dist/build-metadata.json
+            reports/master-localization-scan.md
+          if-no-files-found: error
+
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7.0.0
+        with:
+          name: build-diagnostics
+          path: reports/
+          if-no-files-found: ignore
+          retention-days: 30
