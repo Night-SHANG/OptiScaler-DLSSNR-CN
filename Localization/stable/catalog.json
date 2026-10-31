@@ -16351,6 +16351,48 @@
       ],
       "obsolete": false,
       "previous_sources": []
+    },
+    "ui.auto.439ac6327d9e": {
+      "source": " or ",
+      "source_hash": "e1a3e78cb5c8858631bf81f94369a0be3fd2aebb9e852e66368b381c8feef91f",
+      "occurrences": [
+        {
+          "file": "OptiScaler/menu/menu_common.cpp",
+          "line": 2299,
+          "callee": "ui-initializer:joined",
+          "arg": 0
+        }
+      ],
+      "obsolete": false,
+      "previous_sources": []
+    },
+    "ui.auto.468f2fd4442a": {
+      "source": "%.1f%% of screen",
+      "source_hash": "ee53e10566f34825d3313160700a6e7338906611ff79bd7574d8bfa41740683c",
+      "occurrences": [
+        {
+          "file": "OptiScaler/menu/menu_common.cpp",
+          "line": 5876,
+          "callee": "ImGui::SliderFloat",
+          "arg": 4
+        }
+      ],
+      "obsolete": false,
+      "previous_sources": []
+    },
+    "ui.auto.f8438dc1e8e6": {
+      "source": "%.2f%% of screen",
+      "source_hash": "6a7441e2dcf46c955ff1d2e726ff28a1c1cb17073d1a5c3dfe837189c2b1c259",
+      "occurrences": [
+        {
+          "file": "OptiScaler/menu/menu_common.cpp",
+          "line": 5884,
+          "callee": "ImGui::SliderFloat",
+          "arg": 4
+        }
+      ],
+      "obsolete": false,
+      "previous_sources": []
     }
   }
 }

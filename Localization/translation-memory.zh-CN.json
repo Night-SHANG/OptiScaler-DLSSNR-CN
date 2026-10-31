@@ -409,5 +409,8 @@
   "You shouldn't need to change it": "通常不需要更改此项",
   "Zero": "零",
   "{} is not available and can't fallback": "{} 不可用，且无法回退",
-  "{} is not available.\nFalling back to {}.": "{} 不可用。\n正在回退到 {}。"
+  "{} is not available.\nFalling back to {}.": "{} 不可用。\n正在回退到 {}。",
+  " or ": " 或 ",
+  "%.1f%% of screen": "屏幕的 %.1f%%",
+  "%.2f%% of screen": "屏幕的 %.2f%%"
 }

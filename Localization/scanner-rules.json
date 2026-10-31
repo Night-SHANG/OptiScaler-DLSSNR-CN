@@ -200,7 +200,8 @@
   "technical_regex": [
     "^[A-Za-z]:\\\\",
     "^(dxgi|winmm|version|dbghelp|d3d12|wininet|winhttp)\\.dll$",
-    "^https?://.*$"
+    "^https?://.*$",
+    "%\\.\\d+f(?:%%| px)?"
   ],
   "scoped_calls": [
     {
@@ -303,6 +304,18 @@
         "preview",
         "selectedAF",
         "autoText"
+      ]
+    },
+    {
+      "glob": "OptiScaler/menu/menu_common.cpp",
+      "calls": {
+        "ImGui::SliderFloat": [
+          0,
+          4
+        ]
+      },
+      "ui_initializers": [
+        "joined"
       ]
     }
   ],

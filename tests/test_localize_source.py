@@ -55,6 +55,26 @@ class LocalizeSourceTests(unittest.TestCase):
             self.assertEqual(p.read_text(), once)
         finally: td.cleanup()
 
+    def test_common_composed_display_formats_keep_range_lifetime_and_ids(self):
+        text = ('auto joined = upscalers | std::views::join_with(std::string { " or " });\n'
+                'ImGui::SliderFloat("Size##mag", &size, 5.0f, 50.0f, "%.1f%% of screen");\n'
+                'ImGui::SliderFloat("Border Size", &border, 0.0f, 2.0f, "%.2f%% of screen");\n'
+                'Keybind("Toggle overlay", VK_HOME); upscalers.push_back("DLSS");\n'
+                'ImGui::SliderFloat("DLAA", &v, 0, 1, "%.3f");\n')
+        sources = [' or ', 'Size##mag', 'Border Size', '%.1f%% of screen', '%.2f%% of screen']
+        td,p=self.temp_file(text)
+        try:
+            localize_source.instrument_file(p,'OptiScaler/menu/menu_common.cpp',RULES,
+                                            {x:key_for_source(x) for x in sources})
+            out=p.read_text()
+            for source in sources:
+                self.assertIn(f'OptiScalerCN::Loc::T("{key_for_source(source)}", "{source}")', out)
+            self.assertIn('std::views::join_with(std::string { OptiScalerCN::Loc::T(', out)
+            self.assertIn('Keybind("Toggle overlay", VK_HOME)', out)
+            self.assertIn('upscalers.push_back("DLSS")', out)
+            self.assertIn('ImGui::SliderFloat("DLAA", &v, 0, 1, "%.3f")', out)
+        finally: td.cleanup()
+
     def temp_file(self,text):
         td=tempfile.TemporaryDirectory(); p=Path(td.name)/'menu_common.cpp'; p.write_text(text,encoding='utf-8'); return td,p
 

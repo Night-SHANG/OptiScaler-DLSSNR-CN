@@ -7570,6 +7570,24 @@
       "state": "reviewed",
       "source_hash": "668cc0d362a9d1b3091db966c3c7717551a07ed59e63dbe2bc5bfce6dbfcf54d",
       "note": "Audited dynamic visible text"
+    },
+    "ui.auto.439ac6327d9e": {
+      "text": " 或 ",
+      "state": "reviewed",
+      "source_hash": "e1a3e78cb5c8858631bf81f94369a0be3fd2aebb9e852e66368b381c8feef91f",
+      "note": "seeded from maintained translation memory"
+    },
+    "ui.auto.468f2fd4442a": {
+      "text": "屏幕的 %.1f%%",
+      "state": "reviewed",
+      "source_hash": "ee53e10566f34825d3313160700a6e7338906611ff79bd7574d8bfa41740683c",
+      "note": "seeded from maintained translation memory"
+    },
+    "ui.auto.f8438dc1e8e6": {
+      "text": "屏幕的 %.2f%%",
+      "state": "reviewed",
+      "source_hash": "6a7441e2dcf46c955ff1d2e726ff28a1c1cb17073d1a5c3dfe837189c2b1c259",
+      "note": "seeded from maintained translation memory"
     }
   }
 }

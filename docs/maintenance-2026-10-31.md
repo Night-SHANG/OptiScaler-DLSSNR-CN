@@ -84,3 +84,21 @@
 - main/master 上的 Localization/overlay/tools/workflow/upstream.json 变化会触发 build；
   stable目录变化还会触发 upstream-sync，它拥有写权限，并可能继续 dispatch build/release。
 - 因此不能把“直接推主分支”视为仅保存源码，也不能未经批准运行发布工作流。
+
+## 独立复审补丁（冻结基线 b678cdc 之后）
+
+- 复跑基线 81 个测试通过；新增回归先红后绿，现为 82 个测试。
+- 修正上节两项已知残余：只在 `menu_common.cpp` 扫描 `joined` 初始化表达式和
+  `SliderFloat` 的格式参数，补入 ` or ` 与两种 `of screen` 格式（共 3 条）。
+  纯数字/百分比/px 技术格式不入词库；已有翻译不变。
+- `join_with` 仍持有 `std::string` 分隔符；只替换内部字面量为稳定 `Loc::T` 指针，
+  不把临时字符串的 `c_str()` 交给惰性 range。FSR/DLSS/XeSS 技术名与 Keybind 构造值不变。
+- 检查运行时格式使用 `Loc::F`/`std::vformat`，无 `std::format(Loc::T(...))`；
+  tooltip 注入顺序、NR 诊断持有字符串生命周期、相邻字面量和 toast 内容字段回归均通过。
+- 独立按实际源文件调用参数再扫原始英文（排除注释与 vendored imgui），
+  `menu_common.cpp` / `DlssNr_Menu.cpp` 剩余直接 UI 字面量为保留的技术缩写；
+  这不是对游戏运行时动态字符串或全部第三方组件的穷尽证明。
+- 两通道 1039 active、missing/stale=0，原译文零改；新补丁只加 3 条 reviewed。
+- Windows 编译与游戏内验收仍待执行，不以扫描覆盖率替代其结果。
+- 复核发现 `release.yml` 还会直接响应 main/master 的 `Localization/zh-CN.json` push；
+  因此仅允许维护分支 + draft PR 的只读权限 build/localization-check 路线，不合并或发布。
