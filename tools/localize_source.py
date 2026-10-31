@@ -94,6 +94,7 @@ def patch_dynamic_helpers(path: Path):
     # for the rotating splash string container. These are not direct literal
     # arguments, so the literal scanner cannot rewrite their call sites itself.
     replacements={
+        'ImGui::Button(name.c_str())': 'ImGui::Button((OptiScalerCN::Loc::TL(name) + "###" + name).c_str())',
         'preview = opt.label;':'preview = OptiScalerCN::Loc::TL(opt.label);',
         'ImGui::Selectable(opt.label.c_str(), isSelected)':'ImGui::Selectable(OptiScalerCN::Loc::TL(opt.label).c_str(), isSelected)',
         'ImGui::SetTooltip("%s", opt.tooltip.c_str())':'ImGui::SetTooltip("%s", OptiScalerCN::Loc::TL(opt.tooltip).c_str())',
@@ -106,6 +107,12 @@ def patch_dynamic_helpers(path: Path):
     for a,b in replacements.items():
         if a in text and b not in text:
             text=text.replace(a,b)
+
+    # Literal instrumentation has already wrapped the "%s" argument; match
+    # the audited display-data suffix rather than the original whole call.
+    for name in ('opt.tooltip', 'flag.description'):
+        text=text.replace(f', {name}.c_str())',
+                          f', OptiScalerCN::Loc::TL({name}).c_str())')
 
     # The Mipmap Bias utility keeps quality names in a local C string array.
     # Translate both the preview and the Selectable rows without changing the
@@ -154,6 +161,21 @@ def instrument_file(path: Path, rel: str, rules: dict, source_to_key: dict):
     return len(changes)
 
 
+def patch_dlssnr_diagnostics(path: Path):
+    """Translate borrowed diagnostic strings at the UI boundary, not in core logs."""
+    text, encoding = read_source_text(path)
+    for name,call in (('reason', 'DlssNr::FailureReason()'),
+                      ('why', 'DlssNr::ExposureScan::Status()')):
+        original=f'const char* {name} = {call};'
+        replacement=(f'const auto {name}Text = OptiScalerCN::Loc::TL({call});\n'
+                     f'                    const char* {name} = {name}Text.c_str();')
+        if original in text:
+            text=text.replace(original, replacement, 1)
+        elif replacement not in text:
+            raise RuntimeError(f'integration conflict: DLSSNR {name} UI diagnostic anchor changed')
+    write_source_text(path, text, encoding)
+
+
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument('--source',required=True,type=Path); ap.add_argument('--channel',choices=CHANNELS,default='master'); args=ap.parse_args()
     paths=localization_channel_paths(args.channel)
@@ -178,6 +200,7 @@ def main():
     if not menu.exists(): raise RuntimeError('integration conflict: OptiScaler/menu/menu_common.cpp missing')
     patch_font_and_init(menu)
     patch_dynamic_helpers(menu)
+    patch_dlssnr_diagnostics(args.source/'OptiScaler/dlssnr/DlssNr_Menu.cpp')
     print(f'instrumented {total} literal UI arguments')
 
 if __name__=='__main__':

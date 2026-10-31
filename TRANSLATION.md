@@ -101,3 +101,16 @@ The first command updates only fresh `reviewed` entries in translation memory. M
 ## Fork-specific UI
 
 扫描范围包含 `OptiScaler/dlssnr/**`。普通 OptiScaler 文本复用共享中文；Dagherbou/OptiScaler_DLSSNR 新增文本只在首次发现或源文变化时进入待翻译列表。
+
+## Coverage audit beyond the catalog
+
+A 100% catalog score does not prove that every UI source was discovered.
+Compare actual UI calls, custom helpers, option arrays, late-assigned containers,
+notification constructors, display-only return values and string initializers
+against scanner candidates. Keep these additions narrowly scoped.
+
+The DLSSNR audit is recorded in `docs/maintenance-2026-10-31.md`.
+Adjacent C++ string literals must remain one expression during instrumentation;
+runtime format strings require `Loc::F` rather than passing `Loc::T` into
+`std::format`. Diagnostics shared with core logs should be catalogued without
+rewriting their producer and translated at the UI boundary.

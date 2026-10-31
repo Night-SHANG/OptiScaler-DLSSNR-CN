@@ -6749,6 +6749,845 @@
       "state": "machine_translated",
       "source_hash": "509c517ede79fef060a5f3a109fd1f45951eef2c7970b25c20992011e36a4070",
       "note": "completed fork-specific UI translation 2026-09-12"
+    },
+    "ui.auto.bd15195bf111": {
+      "text": "在超分辨率输出中合成细节，然后交给帧生成处理。\n\n需要在 OptiScaler 旁放置两个名称只差一个字符的文件：\n  nvngx_dlssnr.dll       NVIDIA 模型（约 165 MB）——需自行提供\n  nvngx.dll_dlssnr.dll   转发器（约 13 KB）——本包附带\n此接口未公开文档，采用直接调用方式，因此这些功能均不受官方支持。",
+      "state": "reviewed",
+      "source_hash": "5a22bf065e3aa69dc8ec659ec1a4dff51f5b819d818375e5e7244ddf50190110",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.aec1e274ef14": {
+      "text": "是否应用模型的修改。关闭时显示未经修改的超分辨率画面，但此处理通道仍在运行。\n因此，可配合“对比”中的“冻结画面”，在同一个冻结帧上开关此选项，\n比较启用和未启用神经渲染的效果。正常使用时请保持开启。",
+      "state": "reviewed",
+      "source_hash": "82d60a833104d8f6c1681a7e736b8c012583d0c3b1edcf2fc6b8c398c01588ed",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.7123623b66fe": {
+      "text": "将模型高于原生分辨率的结果缩小到显示尺寸的滤波器。\n它使超采样减少噪点，而不是增加噪点。较锐利的滤波器\n（Lanczos3、Kaiser3）保留更多细节；较柔和的滤波器\n（Bicubic、Catmull-Rom）产生的振铃较少。\n它独立于“输出缩放”的缩小滤波器，两者可以使用不同设置并同时运行。",
+      "state": "reviewed",
+      "source_hash": "2710f1fab89a7aeb7b1bb51e917a8e09a251af298b4ed6ec45c3cb70047d44e9",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.e69e0553392d": {
+      "text": "模型处理分辨率相对于画面分辨率的比例。开销大致随比例的平方变化，\n所以半分辨率的耗时约为四分之一。\n\n画面本身不会缩小。只有模型的贡献在较低分辨率计算后再放大，\n因此无论此处如何设置，底层原始画面都不变。\n\n取舍在于：模型添加的大范围明暗变化可以在放大后保留，\n但其合成的精细结构会变柔和。当处理开销相对于新增细节过高时值得使用。\n\n原始画面始终保留全部细节——只有模型自身的工作以较小尺寸完成。",
+      "state": "reviewed",
+      "source_hash": "05acf23fe32c4ae062c67c4a9abf82df7fc93955f27c1e3e552ff6cbee4f6ea5",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.22f6c607085e": {
+      "text": "模型以低于画面尺寸的分辨率运行时，如何将其结果放大。\n\n经典：直接将模型的小图与全尺寸画面合成。两者的差异既包含模型修改，\n也包含缩小产生的模糊；合成无法区分这两者，会把模糊误判为原始画面\n存在而模型未见到的亮度。模型分辨率越低，误差越大，\n这就是在 50% 分辨率下出现偏色的原因。\n\n匹配残差：只放大模型产生的差异，再叠加到原始画面的代理图上。\n这样参与比较的两张图都是全尺寸，来自低分辨率栅格的只有修改本身。\n\n在 100% 或更高分辨率下无效：此时没有需要放大的残差，两种方式相同\n（超采样结果会先缩小到画面尺寸）。\n\n源自 hhkbble 在此分支上的多通道处理工作。",
+      "state": "reviewed",
+      "source_hash": "0c6184650ed524e9fa3d59f36e8ce1cf13372b0e36cc008e660ebc3759881488",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.315bdb1d5cfb": {
+      "text": "画面向模型结果靠近的程度。\n\n模型输出并非简单叠加到原始画面上，而是一张完整图像，\n其亮度会重新缩放以匹配原图。此选项在两张完整图像间混合，\n所以两个端点以及中间结果都是完整画面。\n\n0 完全保留超分辨率输出。1 为模型的结果。\n\n超过 1 会沿同一方向继续外推，这不是模型原本要求的结果。\n可用它观察模型在做什么，然后再调低。\n想增强最终效果应调此项；“强度”属于模型内部参数，由模型自行决定如何使用。",
+      "state": "reviewed",
+      "source_hash": "16b688fce9b567cad78fc995bdd84a9531ea49a4eb888f7b4fa1133b7b67c8aa",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.23d7227fd278": {
+      "text": "是否让模型的色彩随亮度一起应用。\n\n0 完整保留游戏原本的色相——每个像素只按模型结果改变亮度，\n保留游戏色彩的同时获得细节。1 同时引入模型自己的色彩，\n并限制在 AP1 范围内，避免不可表示的颜色。\n\n此方法本身不会凭空偏移色相：它在两张完整图像间插值，\n而不是向一张图添加色差；旧方法可能导致暖色物体变绿。\n\n超过 1 会增强饱和度：保持色相但颜色更鲜艳，\n并在显示范围边缘平滑压缩，而不是截断成一片过曝的平色。\n1 是模型原本的色彩，继续增大可获得更强烈的视觉效果。",
+      "state": "reviewed",
+      "source_hash": "41bf1b3426d7d26d98d7fa31e0c1ee86f54b6ecc1366049e52ac692a17f4ae27",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.34438b2f403f": {
+      "text": "模型看到的内容，以及如何还原其输出。\n\n关闭（柔和拐点）：默认方式。对高光的压缩较强，模型无法解析其中细节。\n柔和光照场景效果尚可，明亮场景较弱。\n\nNeutwo 合成：使用不截断的曲线，让模型看到高光细节，再应用上方所有设置\n（细节／色彩强度、高光保护、调色板）。明亮场景效果较好，\n但也会压缩中间调，因此柔和光照场景可能不如关闭。\n它还会改变纸白，请在切换后重新检查。\n\n混合合成：兼顾两者，推荐使用。中间调保持恒等映射，效果与关闭一样；\n只在高光使用不截断的压缩，从而恢复关闭模式丢失的细节，\n又不牺牲 Neutwo 会压缩的中间调。它几乎不改变纸白。\n\n替换：将模型原始输出直接通过精确逆变换还原，不做合成，\n不应用保护、调色板或强度设置。没有强光时效果出色，\n但强光在运动中会闪烁。适合用作参考，不建议日常使用。\n\n混合替换：与替换一样使用原始模型输出，但采用混合曲线。\n中间调解码为恒等映射，因此闪烁局限于真正的明亮高光，\n而非整幅画面。保留替换模式的大部分细节，同时稳定得多。\n如果喜欢替换的效果但受不了闪烁，可用此项。\n\n关闭模式与原先输出逐字节一致。",
+      "state": "reviewed",
+      "source_hash": "79e8193354ffb129c61406ebdffbc3f79fff18d762486b75c9b532f74cfbc284",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.80023f987bb0": {
+      "text": "默认由模型自行选择。\n\n此处的预设尺度不同于超分辨率或光线重建预设；\n相同数字在这里代表不同含义。",
+      "state": "reviewed",
+      "source_hash": "65faa4938c617b522ff89b536ca905544ad6f68f94a3bdadfdbbb5d54b1f3bd4",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.471e6ec8b6e3": {
+      "text": "模型自身的处理配置。\n\n默认（标准）：效果最强。增强局部对比度和光照层次，\n但可能过饱和或带有风格化效果。\n大部分“模型改变了游戏观感”的感受来自此配置。\n\n自然：提供相同的细节处理，但手法更温和，\n使肤色和明暗平衡更接近游戏原始渲染。\n\n电影：减弱光泽和过度处理，呈现电影般观感。\n\n此设置在创建模型时读取，因此更改后会稍等片刻并重建模型。\n名称来自社区测试；NVIDIA 的二进制文件并未提供这些名称。",
+      "state": "reviewed",
+      "source_hash": "fbc1149b13a1eac4090c9938bec4df1b4b53615306eb197eaab77b1365de3bc4",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.67462b259bd7": {
+      "text": "模型内部使用的强度控制。\n与上方的“细节强度”不同，后者是在模型处理完成后缩放结果。",
+      "state": "reviewed",
+      "source_hash": "cb83020f2bb6224c6046bdeeb3fb9a13ec4f32bd989f8ff3f9f44dee601db759",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.1c309df32e96": {
+      "text": "-1 表示跟随局部结构，也是模型自身的默认值，并不表示强度为零。\n0 及以上可将皮肤设置与画面其他区域独立控制。",
+      "state": "reviewed",
+      "source_hash": "3c716fb15b794aad2cb054581d76ec54d84a2af4ab80021be14508681551ad32",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.b11493f30c5e": {
+      "text": "让模型自行识别皮肤，而不是对整幅画面一视同仁。",
+      "state": "reviewed",
+      "source_hash": "c0219a4be87850dab1c683fc01c3ebf6802fbd4611f04a5ede9050c1f339db5a",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.31fbc40ece07": {
+      "text": "用于除算画面的数值来自哪里。\n\n仅纸白——只使用下方滑块。适合曝光从不变化的游戏；\n曝光一旦变化便不适用：一个常数无法兼顾洞穴与旷野。\n\n游戏自身曝光——从游戏交给超分辨率器的纹理读取。\n这是最佳来源，因为它由上游决定，不受此处理通道影响。\n并非所有游戏都会提供。\n\n扫描找到的缓冲区——用于游戏计算了曝光却未传出的情况。\n它只是一种推测：候选项按结构形状匹配。在 GTA V 中，最佳候选能跟踪实际曝光，\n但使用自己的尺度，而锚点比值会抵消该尺度差异。\n需要先进行一次锚定，并在之后检查效果。",
+      "state": "reviewed",
+      "source_hash": "9668b50a19833d75378dba59474e181496b7b005c737546c3616fd249d5e6cbf",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.62c7614fcf41": {
+      "text": "所选校准点的白点；未选中行时，则是下次按下“锚定”时捕获的值。\n\n先调整到当前画面合适，再锚定。移动到明显不同的光照下再做一次：\n两个点可以确定缓冲区的实际关系，使中间范围的白点也正确。\n点击下方一行可重新调整该点；再次点击则取消选中。",
+      "state": "reviewed",
+      "source_hash": "a0664ae2f75866e6dd24fd60691dd2cfb3845e382772cb0286c16f0266bb802c",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.832d2d48177c": {
+      "text": "扫描白点的乘数，也是锚点之间应调整的控制项。\n调到当前光照下画面合适，再按“在此锚定”：\n它会将微调后的值记录为新点，并将微调重置为 1。",
+      "state": "reviewed",
+      "source_hash": "ce1a900ff2e214711cce286d758d239a16743d1695b181ef1049910da7eff081",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.ee16a910d8c9": {
+      "text": "游戏提供的曝光值的乘数。1.00x 原样使用该数值，这通常就是正确设置。\n\n它不是用来掩盖问题的修正系数。如果必须远离 1 才能让游戏看起来正常，\n说明读取的曝光不适用于该游戏，而不是游戏需要这么大的微调。\n约 0.8 到 1.25 属于合理微调；调到 4 则意味着上游某处有问题，微调只是在掩盖它。\n\n手动纸白单独保存。关闭上方选项后，它会原样恢复。",
+      "state": "reviewed",
+      "source_hash": "f149fec0fa6711dfb66efe7b723e3c65f554a1533cc44847878ee27d01ed63cb",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.c62e60c6bd45": {
+      "text": "模型读取画面前使用的除数。不存在其他白点设置；这就是完整的白点定义。\n\n模型在白色为 1 的最终画面上训练，而超分辨率输出是无固定上限的线性值，\n因此必须明确白色所在的位置。游戏的 DLSS 缓冲区为线性 HDR 时，\n该数值往往远离 1。以 Monster Hunter Wilds 实测为例，\n需要 16 或更高，模型细节才开始进入画面；\n适合阴影营地的数值，对于同一游戏的日光场景仍然太小。\n\n过低时，几乎所有像素都进入柔和拐点区：模型看到一张接近纯白的平坦图像，\n其结果被缩弱，只剩色相，因此表现为偏色而非明显的细节丢失。\n过高时，模型看到欠曝画面，输出质量降低，而还原时这个数值又会放大误差。\n\n逐渐提高，直到画面不再改善。超过最佳点后不是保持不变，而是向另一方向变差。\n\n过去此项是实测白点的乘数。现在已移除该测量：\n它测到的是场景亮度，而非白色应在的位置，导致模型看到的图像暗了三倍，\n高光路径也无细节可恢复。\n\n强度为零时，无论此项如何设置，画面始终逐位一致。",
+      "state": "reviewed",
+      "source_hash": "c780021a55ecfca11c8e95d86f06e2ba583e72f1b4daadd58e692f7bb9aebd16",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.125c008717e2": {
+      "text": "此处理通道改变任一像素的最大倍数，双向生效：\n亮度不能超过原值的此倍数，也不能低于原值除以此倍数。\n模型对光源的处理价值最低，而重新缩放其输出最容易造成损伤。\n2x 可以保留细节，同时避免条形灯变成一串彩色块。\n仅在明亮区域看起来被截断时增大此值。",
+      "state": "reviewed",
+      "source_hash": "87ec1e66270d652e59ec4a09bfa10bd0e16ed0468e2a34f77aeecedbc51c2bc1",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.a8587a69791c": {
+      "text": "角落中的指示灯：红色表示暗处，绿色表示充分照明，\n中间色表示过渡，旁边显示读数。\n\n它能让你一眼看出扫描是在跟踪变化，而不只是运行。\n走入阴影应趋向红色，走出去应变绿。\n如果方向反了，请调整上方设置。\n\n仅作读数显示，不会改变任何处理效果。",
+      "state": "reviewed",
+      "source_hash": "e06940b8ec4b8895a2dda4c2f63a3eb95f9b2e63ba27ba2936093856bfde0672",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.fb18b9ad048a": {
+      "text": "先将画面调好，再按此按钮，把当前效果保存为一个点。\n第一个点使用上方“纸白”滑块；之后每个点都先移动到不同光照下，\n使用“微调”调整，再由“锚定”将其保存为新点。\n\n第一次按下会校准一个点，白点随后按比例跟随扫描。\n走到明显不同的光照下，再设置纸白并再次按下：\n第二个点可以确定缓冲区的实际曲线，让两点之间也正确，\n而不只是在某个锚点附近正确。最多支持八个点。\n\n该表按游戏保存，可分享：一个人为某游戏校准后，\n使用该配置的所有人都能使用相同数值。",
+      "state": "reviewed",
+      "source_hash": "87f86f6b47a1e1e9d099aad7476593f7871d9812998cab29a165a2e6fa49fad2",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.7f0fa6fb2d34": {
+      "text": "如果画面在本该改善的方向上反而变差，请翻转此项。\n多数引擎存储的曝光值随场景变亮而降低，但有些存储其倒数；\n仅凭形状找到的缓冲区无法判断是哪一种。\n在不同光照下添加第二个锚点后会自动确定，因此此选项会消失。",
+      "state": "reviewed",
+      "source_hash": "494ac8f7279bd5ec6bbb0b7145bcf74bd3066bad66b140c21756ea0525343fa5",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.9eb53acc8573": {
+      "text": "冻结模型处理的画面。冻结期间可调整纸白、强度、可逆模式、模型预设，\n或超分辨率之后的任何设置；只有设置效果变化，场景保持不动。\n\n无法展示 DLSS／FSR／XeSS 超分辨率预设或上游设置的变化\n（冻结帧不会重新运行超分辨率器），也无法冻结游戏自身的 HUD 和后处理，\n因为它们在此通道之后执行，仍会更新。\n冻结时白点停止测量并保持不变，避免漂移干扰比较。\n\n隐藏菜单后仍保持冻结。关闭此选项即可恢复。",
+      "state": "reviewed",
+      "source_hash": "391a64f55095071953279952cbb793776ad7b5c38b2a4319f56a6e73e978fb87",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.223c3299c170": {
+      "text": "同时展示此通道处理前后的画面，免去反复切换并凭记忆比较。\n\n并排：每半边显示完整画面，左侧为未修改画面，右侧为修改后画面。\n两边都水平压缩以适应空间，因此适合观察而非游玩。\n\n擦除对比：在分割线处切换同一帧，不进行重采样，\n因此比例正确，可正常游玩。可拖动下方分割位置；\n该设置会保存，关闭菜单后位置不变。\n\n两种模式均无需保持菜单打开。接缝由一条细线标记。",
+      "state": "reviewed",
+      "source_hash": "efe06fb0f71a1860a565cdc66f35b8ee2274eda5b43df3a5cd50b738596addab",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.f9dd7c8e30a6": {
+      "text": "直接在画面上写明各侧内容，使截图离开本机后仍能辨认。\n标签绘制在图像自身平面内：擦除对比时，分割线像显隐图像一样显隐标签，\n无需拖动。交换两侧时，标签会随对应画面一起移动。",
+      "state": "reviewed",
+      "source_hash": "972e3a85e6511f36bf8124745abbc423f44b3206f9e51650e8bbef053d8f6e36",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.c282ad6dd524": {
+      "text": "将修改后的画面放到另一侧。\n\n决定更喜欢哪边后值得交换一次：人眼对左右并非完全公平，\n仅仅因为摆放位置不同，就可能把差异当作改善。\n交换后若仍偏好同一种处理结果，看到的才是处理效果，而不是位置偏好。",
+      "state": "reviewed",
+      "source_hash": "6ccbd83d8d95ea74d57082d117b8e707619961527ead212cfcb14dfefff4d00e",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.1680c50f081f": {
+      "text": "每半边展示多少画面。\n\n半边区域与原画面等高、宽度只有一半，因此无法既填满又保持原比例。\n\n1 时按正确比例显示整帧，上下留边。\n2 时填满半边区域，但裁去左右两侧。\n中间值在两种效果之间取舍。",
+      "state": "reviewed",
+      "source_hash": "4f8601aa4944c8b5919fb9e16ec44961c9c8acb6a9966b626c1a55d70a9a7186",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.88bafc690d23": {
+      "text": "擦除对比分割线的位置。左侧为超分辨率器输出的原始画面，\n右侧为模型修改后的画面。",
+      "state": "reviewed",
+      "source_hash": "c3c5792f333c2a77a6cab6d57b0c5aa22338904ed37aa44a662ce01ad3132514",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.91ce956637ce": {
+      "text": "代理图是交给模型的图像——如果它看起来不对，说明白点不对，\n此时无法判断任何下游效果。\n\n差异图显示模型实际改变的内容，放大二十倍并以灰色为中心。\n如果整帧是均匀灰色，说明模型没有做任何改变。",
+      "state": "reviewed",
+      "source_hash": "048aed52f629b348c876a0d1a69d44b66f85f1bc1db6cdd8d0735c0059814835",
+      "note": "DLSSNR helper coverage maintenance: translated against exact upstream source"
+    },
+    "ui.auto.4336677c35e0": {
+      "text": "纸白（正在编辑校准点 %d）",
+      "state": "reviewed",
+      "source_hash": "673ac2de00bab9e925578c4463e8450475b1121feb0778fda6901fe80c1a1503",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.0804a3b949b3": {
+      "text": "微调（乘以游戏曝光）",
+      "state": "reviewed",
+      "source_hash": "4e94c75492ebea11dc02cf6c5c4931da5b0a917e1c9d3ab0607529c23944a4ef",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.6410d0f7dcc8": {
+      "text": "%s 扫描 %.4f  ->  白点 %.2f%s",
+      "state": "reviewed",
+      "source_hash": "b7aafd194d5d6c73ba1cdd9a120b4e36dbe981fcd27bfe3acd0f60e5d71b5dea",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.9f4220f2095b": {
+      "text": "重置##",
+      "state": "reviewed",
+      "source_hash": "a3b9f5d10fb672c84a8663b685de517f2e1bb50cb3996e32a534d023d79782f4",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.fdb965a33f33": {
+      "text": "  （模型正在运行，修改效果已隐藏）",
+      "state": "reviewed",
+      "source_hash": "0c88a0aa16d52eaf71089cdf9cd3ac68a19a9ca6b86c11233d6cc095d9d497f8",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.5b9c711312e3": {
+      "text": "   [编辑中]",
+      "state": "reviewed",
+      "source_hash": "0c2b9730fce1769c2718c4c9adcebcdc040a3097dda24c78998c4182b6b4a9cf",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.7e3fe7c3ea29": {
+      "text": "尚未开始",
+      "state": "reviewed",
+      "source_hash": "7a7400f466699598334c05b36a21691ad254b552c78b90606c9177efc22fd652",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.a0dfd4f6df89": {
+      "text": "无法分配回读缓冲区",
+      "state": "reviewed",
+      "source_hash": "23373589752bcb8b21a1024a74fbf1be49bd564190ad1729468bff93ce94d8e7",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.e3287b6061f2": {
+      "text": "此游戏中没有结构符合曝光数据的缓冲区",
+      "state": "reviewed",
+      "source_hash": "731f5ab67f16a0830178d084044957f0659beabb37f51e59892aa8f53f8f66a7",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.07886415d7ee": {
+      "text": "缺少 nvngx.dll_dlssnr.dll",
+      "state": "reviewed",
+      "source_hash": "cc1e7637267f596aa6bcae2262ca10a410e00b3d5ddbafef6220648c740dc61f",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.e02b5373ad94": {
+      "text": "无法加载 nvngx.dll_dlssnr.dll",
+      "state": "reviewed",
+      "source_hash": "2829bc2bf90cfa4685ff9621110824e9a2c748c7ea89073da95a3f29d98e5099",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.985b8ac8a2a9": {
+      "text": "转发器缺少所需的导出函数",
+      "state": "reviewed",
+      "source_hash": "6afba0584ea15b76fe5469946f8a1ef05bfeac2b636a05e27b557b31e96670eb",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.783ed75a5bf8": {
+      "text": "NGX 核心无法初始化",
+      "state": "reviewed",
+      "source_hash": "7cb5edead41d7981989ea08d917c8b8aa5d92717542651853f37b399813c5b47",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.5ac629803bc4": {
+      "text": "NGX 核心未提供能力参数",
+      "state": "reviewed",
+      "source_hash": "64d52c5c0c9ff724fd4a4e5d5d5a4dc8a03acccc1e74feb53325b40b2091f4f1",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.9c65a153aa53": {
+      "text": "NGX 核心拒绝了其能力参数",
+      "state": "reviewed",
+      "source_hash": "462cdce436c6d047c4fca6f12a17fbcf8e636b6bc2ddf81b8d3715a15ff7b606",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.fb16d16e2e9e": {
+      "text": "在 OptiScaler 或游戏目录中未找到 nvngx_dlssnr.dll",
+      "state": "reviewed",
+      "source_hash": "f58c3b3460f3607b80a2bc7f2510cc6f6dee5ff40c5a975ac0649c872b74fec7",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.505be35dc07c": {
+      "text": "模型无法初始化",
+      "state": "reviewed",
+      "source_hash": "d56d63f45bd6498a1a000f5a01bd04c6de8e0c2a3c38da0008c4bb64075cbf87",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.b9d09f0d9e90": {
+      "text": "颜色编解码器无法编译",
+      "state": "reviewed",
+      "source_hash": "7471902e8993377786ffb458f2f3fd0ee96407a20b0c8f997a0d36e1d6c682bb",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.050c588ffcf5": {
+      "text": "无法将游戏的深度或运动矢量资源设为可读取",
+      "state": "reviewed",
+      "source_hash": "8f30d545060713f8023cabbb59e1c4c5d898a417b025e82ad7f3d49d48a6c220",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.43a4ef75bd3d": {
+      "text": "代理图路径无法运行模型",
+      "state": "reviewed",
+      "source_hash": "19b73a48cde9e46dde48baed4e9bc77a90fc2ae8b3decc370d9a5577d6549aee",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.bca6b19651e9": {
+      "text": "模型拒绝运行",
+      "state": "reviewed",
+      "source_hash": "6a5859c30c931bf18e554b4cf50f8fd2dac0f2a17a8d8562978824f449bb14d3",
+      "note": "DLSSNR UI-only diagnostic and dynamic-label maintenance"
+    },
+    "ui.auto.9c74c2e5830d": {
+      "text": "这可能并非有意为之，并会使 OptiScaler.log 文件变得很大\n请关闭文件日志记录并删除 OptiScaler.log",
+      "state": "reviewed",
+      "source_hash": "ab98b926407fdc0dd34c04cf5cb2883b573a92100e63d70e2536140ec8005de7",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.130cd7fe3334": {
+      "text": "经典",
+      "state": "reviewed",
+      "source_hash": "ae25d6481fc1741ffee4a95cd05de7b6375f7e1b0c63c006640b366094f2c4a9",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.e80364e60301": {
+      "text": "匹配残差",
+      "state": "reviewed",
+      "source_hash": "ed8e25f3f6957dc5fb38444dbd858ffd366f26463cc1d3774bb0cd7a1775cec6",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.30158df4c8fe": {
+      "text": "关闭（柔和拐点）",
+      "state": "reviewed",
+      "source_hash": "4e9772fad51c2e6f4d15131e962af20648944f1e6ff7502d39c56b2ae7b3a724",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.baf4bd7cbc7d": {
+      "text": "默认（标准）",
+      "state": "reviewed",
+      "source_hash": "1edcf76142e5b93260684c1d601f08fd8252a59bdf50e250485e2a9ced450717",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.ea26876daa9a": {
+      "text": "自然",
+      "state": "reviewed",
+      "source_hash": "d6acb6d51cfc574936fc79bc06b8a3716f4a33ee69efb70dd7f59720d434ccd9",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.bf9d43402f3d": {
+      "text": "电影",
+      "state": "reviewed",
+      "source_hash": "912d0988b06550601e2fd95360ea72f9bb25f0c7dd54bc741a20dc24f28242c9",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.bd3d1bd0a25b": {
+      "text": "仅纸白",
+      "state": "reviewed",
+      "source_hash": "579c90e2aa273c322eeb480c944af29a199cd3adb5e322ffbfa55ab91b059f2c",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.954632f29ff6": {
+      "text": "游戏自身曝光",
+      "state": "reviewed",
+      "source_hash": "852072b23a9690aa48cec6138fb1c06bfcc47a21ef8ddefeb969831ed463135f",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.17ca7255b998": {
+      "text": "扫描找到的缓冲区",
+      "state": "reviewed",
+      "source_hash": "0acc79de4caedaa073a4d1f3b9be81a9f93af0470519f64e6a33cf1ca24bee71",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.5f65cb44b228": {
+      "text": "并排",
+      "state": "reviewed",
+      "source_hash": "a3d7b387c34df52c5a611045b53215ebba668ddb9026a813b5aff0d50599fb3e",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.a0e0273a78ad": {
+      "text": "擦除对比",
+      "state": "reviewed",
+      "source_hash": "3404644e01177ee996b69247aa3967e7a3f66702c5ff0f7270591e8d9622183b",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.79f49544d53e": {
+      "text": "代理图（模型看到的内容）",
+      "state": "reviewed",
+      "source_hash": "84ff9d56b310f7ee68eeec1416d6109e0a7718901630aa53b215721a42c2508e",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.e19243d70b4e": {
+      "text": "模型输出（原始）",
+      "state": "reviewed",
+      "source_hash": "dec2b63a81d8da6bb1dbebe7e6f33964706fbc18b2bafba0dd378f7581809469",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.56d9f58358cc": {
+      "text": "差异图（放大）",
+      "state": "reviewed",
+      "source_hash": "e90b56703c2611e7635b01262f7027dbe624eca4594618299be67f40e7710454",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.5553c187b667": {
+      "text": "编译着色器时出错！",
+      "state": "reviewed",
+      "source_hash": "5b5c53d9fc417c11f4f2489f8cf161a9c76caaf24a2d35bad46bf0cf70d4ae28",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.3a6d1a65cef0": {
+      "text": "无法初始化 FSR FG\n是否缺少所需的 DLL？",
+      "state": "reviewed",
+      "source_hash": "e84ed7ba32112810c5597bf4fa45f8680caeb922081e91d4fede00089c0b54f6",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.78247856dac9": {
+      "text": "无法初始化 XeFG\n是否缺少所需的 DLL？",
+      "state": "reviewed",
+      "source_hash": "66e5a7124d268a816fa6a2599a63b5c9eed2f348db2579b85a6201c66db52f29",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.b81959bf086c": {
+      "text": "无法初始化 DLSSG 输出\n是否缺少 streamline 文件夹？",
+      "state": "reviewed",
+      "source_hash": "6e79609f89dd9ecf10e4f842f201a90973a5823122703964609e2e34043c4991",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.cf7167f7e8c2": {
+      "text": "在受支持时效果最佳；部分游戏不兼容（如 Cyberpunk），\n会回退到激进模式",
+      "state": "reviewed",
+      "source_hash": "f9e917e4b67a8f5d3ab550d0fba01bb791232ed84eb3fcad2bcf7f3d43906083",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.4856ea8afba7": {
+      "text": "正在回退到 FSR 2.2",
+      "state": "reviewed",
+      "source_hash": "e7506ec26d4fa59a4663ecc621cdd4486562d7f75191eecb83f66b70ad7c8d09",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.50c4c35ac3a9": {
+      "text": "正在回退到 XeSS",
+      "state": "reviewed",
+      "source_hash": "a3566816ed445488413d4fdfeb4deebfda34362dee2f215b2703cbd71c3aeec4",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.1351bb9361ee": {
+      "text": "正在回退到 FSR 2.1.2",
+      "state": "reviewed",
+      "source_hash": "4ddf7f344713aa0787bffa255dbe8f457b51f6340b81414e05e849a32e149c01",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.00aa84c10b99": {
+      "text": "无法创建共享纹理\n请确保使用 Wine/Proton 11 或更高版本",
+      "state": "reviewed",
+      "source_hash": "14f897eb855e83a5c64b951b95be47fc76650baeed2376172dfb2c64ca5d5ce9",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.2fedcaaa860e": {
+      "text": "超分辨率器运行失败！",
+      "state": "reviewed",
+      "source_hash": "b56065ec389295dd66a8793b9e8ffe23010f6918996c5de5867a6a5eb0c6cd3e",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.9c24f2b186a5": {
+      "text": "{} 不可用。\n正在回退到 {}。",
+      "state": "reviewed",
+      "source_hash": "1f7664cf90cd5ead402f90fb23e121fa766714a828fc6760e92fe3fa9936dd29",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.589b9087814e": {
+      "text": "{} 不可用，且无法回退",
+      "state": "reviewed",
+      "source_hash": "944347b8b4d667297700a16f1855c51ede7d1e919583e3586a8d720e9529a690",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.8b8cbadb6131": {
+      "text": "无法加载 libxess.dll\n请检查该 DLL 是否存在",
+      "state": "reviewed",
+      "source_hash": "8137ed6de522f8d13e0efa13496d9f086d09ef2c0e83cb117e9b88481687a776",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.58be238dd555": {
+      "text": "无法创建 XeSS 上下文\n{}",
+      "state": "reviewed",
+      "source_hash": "7304a1c7fde13ea43eb2554a6f5c45230f85ebdc4ff55b34ad1587ee89bfd075",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.b4e9232d42ef": {
+      "text": "无法加载 libxess_dx11.dll\n请检查该 DLL 是否存在",
+      "state": "reviewed",
+      "source_hash": "c3976b861e4aae80cf5d3b7ff5cb616f10d3a31aa85e3911afbb95b32bc3e2c7",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.94a96543200e": {
+      "text": "streamline 文件夹中缺少以下 DLL：\n",
+      "state": "reviewed",
+      "source_hash": "5944b9d3efa476407050ba1f816743f8a32a962af471fe1c05232b9507146b38",
+      "note": "Reviewed dropdown/notification coverage maintenance"
+    },
+    "ui.auto.fa0bfebd7847": {
+      "text": "无法加载 amd_fidelityfx_dx12\n是否忘记解压该 DLL？",
+      "state": "reviewed",
+      "source_hash": "d7242fcf690bf26f8a8281badd1a2ac3b2d95f9a57eaa7f706087ee06bb8660a"
+    },
+    "ui.auto.8e34943c353e": {
+      "text": "模拟",
+      "state": "reviewed",
+      "source_hash": "45314e97b0c26a862b5411d0a943d801583e13bb5d104382ed7a2f4773969e66",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.154da6d4dc1b": {
+      "text": "渲染提交",
+      "state": "reviewed",
+      "source_hash": "2b4713d34f5b385f50b2b2760b9247b7c17ea8d3d3af6d3f21a8ab6205dac897",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.4e9f7a31eef4": {
+      "text": "呈现",
+      "state": "reviewed",
+      "source_hash": "43f9b89c0b9d22d8110ead813ea3949f20592a8bfc3c777d2d49e64da3b0cc9b",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.b5c7d8b545ea": {
+      "text": "驱动",
+      "state": "reviewed",
+      "source_hash": "9fe4c68ec20dda7c6b1d3f760e5e6af6b9802897cd59f084b99c68b2ac01574c",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.89422a4b6271": {
+      "text": "渲染队列",
+      "state": "reviewed",
+      "source_hash": "95e7d02c935d0d1ea495654ee431e85f1ab74c12ffd032f0b3deb84708faf729",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.e018cfb511ee": {
+      "text": "GPU 渲染",
+      "state": "reviewed",
+      "source_hash": "4880e7e873e86537817fcdc3669974e2d0efea25533a235aba02b5dbcb889fdf",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.37ee1fb5481f": {
+      "text": "覆盖预设",
+      "state": "reviewed",
+      "source_hash": "9cea63393766c4e811ef3671778ad1ce5ec06c83888b03ae5f176db1329e0dc8",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.3120d76cf371": {
+      "text": "DLAA 预设",
+      "state": "reviewed",
+      "source_hash": "ee72ea1915db8ac7624bf2a72b116b7c4c4a952657ad57707753f937f68b3dc5",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.43891b35a99a": {
+      "text": "超高质量预设",
+      "state": "reviewed",
+      "source_hash": "ce50022e89a971ccc7bd43b2d994aa5398ee211bc342efc6fe593fa8eeab782b",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.65f498cfe552": {
+      "text": "质量预设",
+      "state": "reviewed",
+      "source_hash": "d730f56026c68ded1f1f683046f1699b59290449b0a4c4c2295047c02eab053d",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.84c337b236c3": {
+      "text": "均衡预设",
+      "state": "reviewed",
+      "source_hash": "5f72a283af002d13d89765730edf93894f84c08cdfaf87802636c64e4eced1ad",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.07e724ff00bd": {
+      "text": "性能预设",
+      "state": "reviewed",
+      "source_hash": "d29093df1feb489ad8ab4e38ca55053db469c86ebffa1947eda9d6ad17e58257",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.a27c5ab1f230": {
+      "text": "超级性能预设",
+      "state": "reviewed",
+      "source_hash": "a8a89d27d3c7101b8db06a559d918de1be86e9dd2fc52192842258fc45032589",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.1c9306cd791f": {
+      "text": "OptiFG（超分辨率器）",
+      "state": "reviewed",
+      "source_hash": "e8d691a8b21638b8b9e90728c2509d55ad07821e0749d662784e4ef2eee3a922",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.cff7a591518d": {
+      "text": "必须启用超分辨率器\n\n可与任意帧生成输出配合，但部分组合可能不够完善\n需使用 HUDfix 防止 UI 异常",
+      "state": "reviewed",
+      "source_hash": "8536ba96d88fb131ac3f4a423ffd237a178e759ca4e757db62d9c567ce0c0ea9",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.87149bf80417": {
+      "text": "DLSSG（通过 Streamline）",
+      "state": "reviewed",
+      "source_hash": "6d897aa8e4d8a73cd3b23853b8f900efeb6610979d76e79f7dc3c5356be6b929",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.6d2fea459e8d": {
+      "text": "可与任意帧生成输出配合\n\n需要在游戏设置中启用 DLSS-FG\n原生支持无 HUD 画面输入\n\n仅限使用 Streamline 的游戏",
+      "state": "reviewed",
+      "source_hash": "53f63aa1fcabacc565b5e797e9fb959c26d266174473a2fcb840056fdd5304e1",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.8909616dbfd7": {
+      "text": "DLSSG（通过 Nvngx）",
+      "state": "reviewed",
+      "source_hash": "dd766f84885610885954c40893492ff714b0f299e63ea3b610236b71e468d83f",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.614d7af28e90": {
+      "text": "仅限 FSR FG 的各个变体\n\n需要在游戏设置中启用 DLSS-FG\n原生支持无 HUD 画面输入\n使用 Streamline 交换链进行帧节奏控制",
+      "state": "reviewed",
+      "source_hash": "13047e7bdaa6dbabbd0f848c607fa54f95e55ae48fbe63822bccd75b9fe6ad3a",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.eb3bfe56255f": {
+      "text": "FSR 3.1 FG",
+      "state": "reviewed",
+      "source_hash": "ac913f7ac5c8ba74d4833bc0bb9de0611d32ec0b7c12d6d24dda31cdc715cdbb",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.521fdb316d6c": {
+      "text": "可与任意帧生成输出配合\n\n需要在游戏设置中启用 FSR-FG\n原生支持无 HUD 画面输入",
+      "state": "reviewed",
+      "source_hash": "8d99d960510b58c5be0ae28eca332eeab81481aeff2cc69d587d91540c4e6681",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.bb451b06bba4": {
+      "text": "FSR 3.0 FG",
+      "state": "reviewed",
+      "source_hash": "99851a2481bad9ee51e62c9b97d72557e4c7a369e34bb29076f701e96137752c",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.936c676a8416": {
+      "text": "FSR FG",
+      "state": "reviewed",
+      "source_hash": "1564475c50b22306b0f530a0057fdca4e39bdeec0946105589f219ffdf03d8dd",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.69ee8643e0b4": {
+      "text": "FSR3/4-FG，RDNA4 自动升级为 FSR4-FG\n\nFSR4-FG 相比 XeFG 的效果因情况而异",
+      "state": "reviewed",
+      "source_hash": "9e95299cbe456e5bf2739bd6949277fe2b91591ce11fed3cf075cbd573ebb65c",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.688c214c3fe5": {
+      "text": "DLSSG 输出\n例如，可与 Nukem's 配合使用",
+      "state": "reviewed",
+      "source_hash": "fed168678aecb725d4e4bee375ea62a14a747e7571cc45c0e9c681dfffeba7a1",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.f7decf4a0a09": {
+      "text": "XeFG——开销最大，但通用帧生成效果最佳\n\nXeFG 3 总体上对 HUD 的处理最好\n\n若 HUD 出现重影，请启用 UI 合成",
+      "state": "reviewed",
+      "source_hash": "f9b323c1517e2a477ee700857b0fb15a52515e0bf230bd81a63d629195680a8f",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.5273b49a8e1b": {
+      "text": "无（原生 DLSSG）",
+      "state": "reviewed",
+      "source_hash": "c21078b5f5efa98f50a56d848a8977ded2a361003afd9c8f5b02cd12d325af62",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.8c2c4b3c4e60": {
+      "text": "原生 DLSSG，适用于 RTX 40 系及以上显卡",
+      "state": "reviewed",
+      "source_hash": "d68b85ffbeb6ad7622f45fbca07dcb9b0949ab8db6019263ade6a14ea1e973af",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.0183de320a81": {
+      "text": "Nukem's",
+      "state": "reviewed",
+      "source_hash": "cba21e52089ffb97d675bb240a75d9949dff04e33ee0c35ce58a14b5a421fda7",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.0ecf2b250d87": {
+      "text": "FSR 3 FG",
+      "state": "reviewed",
+      "source_hash": "f28b7b8f1fc9c1ce3b54c188eae2c711fb833e6fa8f80a2d4e8a191232ce3fbb",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.f601466a9d7e": {
+      "text": "Enabler",
+      "state": "reviewed",
+      "source_hash": "966318b8383bb496e6878035fd40f8b2e96a331a6ca82a71a53f6f2d3b074b9b",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.695e442bf97a": {
+      "text": "FSR 3 MFG",
+      "state": "reviewed",
+      "source_hash": "8c0f36054254afb0021b4e7edefb994b4b47eacc488abd8e6a7c94c7a3bad182",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.1b9ee8be7d56": {
+      "text": "FSR 3/4 FG",
+      "state": "reviewed",
+      "source_hash": "807d272601ad8d38ad1ab872eb743648cb4103b73430ae806a547bdaf1287e98",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.4b1b401359bb": {
+      "text": "通过 FFX 使用 FSR 3/4 FG",
+      "state": "reviewed",
+      "source_hash": "a0877c025b93cc9b5766b48aa0bdad020e3641ffbe026b6d71d4ca02d2abd7c1",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.42a870de562d": {
+      "text": "FFX + Enabler",
+      "state": "reviewed",
+      "source_hash": "01787e96f82bfd5a82821d62c71299fd02dd1da21c6d4e2db5f8f939f6731d60",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.9bf7b7ceba8e": {
+      "text": "中间的生成帧使用 FFX，其余使用 Enabler\n\n2x - FFX\n3x - Enabler\n4x - FFX + Enabler\n5x - Enabler\n6x - FFX + Enabler",
+      "state": "reviewed",
+      "source_hash": "119e76b2303a098dc13b5abb5aeaae2532cc34937dd42416ea4cd9a0ffddf3ae",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.df0e298e3562": {
+      "text": "深度",
+      "state": "reviewed",
+      "source_hash": "f1dbc33978a95b952b19bfc0da8f928e8e3958930810988de2f6e4bd8b27ce01",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.8aadf1657da5": {
+      "text": "遮罩",
+      "state": "reviewed",
+      "source_hash": "e368929abd3614e92ad17e56175b67d1f6ba94aca92ab43b7f16f31764ff7447",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.57f5f5efbc59": {
+      "text": "菜单",
+      "state": "reviewed",
+      "source_hash": "99af6606ff9d6cd5154d4d4e9c21e325086d3e904677cdb41d363c8a3480f862",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.6c31f0812b8a": {
+      "text": "切换 FPS 叠加层模式",
+      "state": "reviewed",
+      "source_hash": "d991c22962b414ff90b5ae44bfdedabb7f9decf0cd03bd16704c60cca2a8141f",
+      "note": "Common helper/FG option coverage maintenance"
+    },
+    "ui.auto.e0049a66519c": {
+      "text": "开启",
+      "state": "reviewed",
+      "source_hash": "130011756125313c72f2cab730db4347e2841526d236a89cb25f38789fa49229",
+      "note": "Audited dynamic visible text"
+    },
+    "ui.auto.887daaeaa1c9": {
+      "text": "DLSS NR：开启",
+      "state": "reviewed",
+      "source_hash": "1d999cd63456bca550b6f07468517b34d6f89a600327c834d2555681aa1249c9",
+      "note": "Audited dynamic visible text"
+    },
+    "ui.auto.b75145897362": {
+      "text": "DLSS NR：关闭",
+      "state": "reviewed",
+      "source_hash": "f4edde52d7f0b961dd3d855c9d95c983a5977ce6ac6630acd812b742149a97a1",
+      "note": "Audited dynamic visible text"
+    },
+    "ui.auto.eb93476451f0": {
+      "text": " （{} 不支持超过 {}x）",
+      "state": "reviewed",
+      "source_hash": "a33312e6ae1fc4f29b8d94bd94873dabc78f0a4bd68c9b33293438bd21873f9e",
+      "note": "Audited dynamic visible text"
+    },
+    "ui.auto.94fb307d654e": {
+      "text": " （{} 已关闭）",
+      "state": "reviewed",
+      "source_hash": "c06a766e1b89bfb4a635c8b9d268ed7153c2f1305d3719952989e87ea03e5a55",
+      "note": "Audited dynamic visible text"
+    },
+    "ui.auto.6f2734cbe666": {
+      "text": " （{} x{}）",
+      "state": "reviewed",
+      "source_hash": "bf709d61d00f54fb2039a2588fd7bfc854717e161db00688901db5e7f71d69ee",
+      "note": "Audited dynamic visible text"
+    },
+    "ui.auto.15a207d82214": {
+      "text": "开启 + 扩展",
+      "state": "reviewed",
+      "source_hash": "2fb105e383fc68740cc8fb9b9e66bb84558126ff0b715bd9cf6e134238fe8b5d",
+      "note": "Audited dynamic visible text"
+    },
+    "ui.auto.47715efd55f8": {
+      "text": "仅扩展",
+      "state": "reviewed",
+      "source_hash": "7c0c5a7d0bb5be653c4eaf3a55d452d0927333152b4115e640c41eefa1ea98d2",
+      "note": "Audited dynamic visible text"
+    },
+    "ui.auto.c3f7e9501822": {
+      "text": "FSR Anti-Lag 2.0",
+      "state": "reviewed",
+      "source_hash": "c5128f27f4c397e414b1624488521c43cec62e9fe25124a9db824067d25bd106",
+      "note": "Audited dynamic visible text"
+    },
+    "ui.auto.c64e7f3d0810": {
+      "text": "Vulkan AntiLag",
+      "state": "reviewed",
+      "source_hash": "546f8d729800d605f8c534c588bea5840a8b1dac5c7f2bf066c0a6d271fb5302",
+      "note": "Audited dynamic visible text"
+    },
+    "ui.auto.898b3534228a": {
+      "text": "游戏自身 XeLL",
+      "state": "reviewed",
+      "source_hash": "d1c460f123728a05e8b1f8c84e7f30a1b1123529eee8b81bc056e720c8998438",
+      "note": "Audited dynamic visible text"
+    },
+    "ui.auto.b4a100ebc4c1": {
+      "text": "后备方式",
+      "state": "reviewed",
+      "source_hash": "325e84939c6410fa2e09372b2b49328fdf22136efbd5ca1d6746667edfb92abc",
+      "note": "Audited dynamic visible text"
+    },
+    "ui.auto.1166b320c83f": {
+      "text": " (RTSS)",
+      "state": "reviewed",
+      "source_hash": "e3dcba7f802998d818da57f8bb8c939a9d716a74c0264d358a6751dc4e755396",
+      "note": "Audited dynamic visible text"
+    },
+    "ui.auto.f6ce7b7762e1": {
+      "text": " （未激活）",
+      "state": "reviewed",
+      "source_hash": "04fb4ea05719cfc365f0f0f8b784f3abdd49e6912aeb5a910fdf4ff6e61b9e45",
+      "note": "Audited dynamic visible text"
+    },
+    "ui.auto.56a8f43337be": {
+      "text": "打开 Wiki（?）",
+      "state": "reviewed",
+      "source_hash": "668cc0d362a9d1b3091db966c3c7717551a07ed59e63dbe2bc5bfce6dbfcf54d",
+      "note": "Audited dynamic visible text"
+    },
+    "ui.auto.439ac6327d9e": {
+      "text": " 或 ",
+      "state": "reviewed",
+      "source_hash": "e1a3e78cb5c8858631bf81f94369a0be3fd2aebb9e852e66368b381c8feef91f",
+      "note": "seeded from maintained translation memory"
+    },
+    "ui.auto.468f2fd4442a": {
+      "text": "屏幕的 %.1f%%",
+      "state": "reviewed",
+      "source_hash": "ee53e10566f34825d3313160700a6e7338906611ff79bd7574d8bfa41740683c",
+      "note": "seeded from maintained translation memory"
+    },
+    "ui.auto.f8438dc1e8e6": {
+      "text": "屏幕的 %.2f%%",
+      "state": "reviewed",
+      "source_hash": "6a7441e2dcf46c955ff1d2e726ff28a1c1cb17073d1a5c3dfe837189c2b1c259",
+      "note": "seeded from maintained translation memory"
     }
   }
 }
