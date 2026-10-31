@@ -8,6 +8,63 @@ from loclib import extract_string_expression, find_candidates, format_tokens, pr
 RULES = json.loads((ROOT / 'Localization' / 'scanner-rules.json').read_text(encoding='utf-8'))
 
 class LoclibTests(unittest.TestCase):
+    def test_dlssnr_custom_helpers_are_scoped_and_rewritable(self):
+        text = 'HelpMarker("Neural help"); DeferredSlider("Local structure", &opt, 0, 2, 1);'
+        got = find_candidates(text, 'OptiScaler/dlssnr/DlssNr_Menu.cpp', RULES)
+        self.assertEqual([(c.source, c.rewrite) for c in got],
+                         [('Neural help', True), ('Local structure', True)])
+        self.assertEqual(find_candidates(text, 'OptiScaler/core/test.cpp', RULES), [])
+
+    def test_dlssnr_formatted_labels_and_conditional_sliders(self):
+        text = 'snprintf(lbl, sizeof(lbl), "Paper white (editing point %d)", 1); ImGui::SliderFloat(scan ? "Trim scan" : "Trim exposure", &v, 0, 4);'
+        got = find_candidates(text, 'OptiScaler/dlssnr/DlssNr_Menu.cpp', RULES)
+        self.assertEqual([c.source for c in got],
+                         ['Paper white (editing point %d)', 'Trim scan', 'Trim exposure'])
+        core = find_candidates('snprintf(b, n, "Internal %d", x);', 'OptiScaler/core/test.cpp', RULES)
+        self.assertEqual(core, [])
+
+    def test_dlssnr_scoped_ui_initializers_and_format_data(self):
+        text = 'const char* runSuffix = hidden ? " (edit hidden)" : ""; const std::string resetId = std::string("Reset##") + label; snprintf(row, n, "%s", edit ? "[editing]" : "");'
+        got = find_candidates(text, 'OptiScaler/dlssnr/DlssNr_Menu.cpp', RULES)
+        self.assertEqual([c.source for c in got],
+                         [' (edit hidden)', 'Reset##', '%s', '[editing]'])
+        self.assertEqual(find_candidates(text, 'OptiScaler/core/test.cpp', RULES), [])
+
+    def test_dlssnr_diagnostics_catalogued_without_rewriting_core(self):
+        got = find_candidates('g_nr.reason = "the model refused to run";',
+                              'OptiScaler/shaders/dlssnr/DlssNr_Dx12.cpp', RULES)
+        self.assertEqual([(c.source, c.rewrite) for c in got],
+                         [('the model refused to run', False)])
+
+    def test_dlssnr_root_directory_option_arrays(self):
+        text = 'static const char* names[] = {"Classic", "Matched residual"};'
+        got = find_candidates(text, 'OptiScaler/dlssnr/DlssNr_Menu.cpp', RULES)
+        self.assertEqual([c.source for c in got], ['Classic', 'Matched residual'])
+
+    def test_adjacent_conditional_literals_stay_one_expression(self):
+        text = 'ImGui::Text("%s", yes ? "first " /* join */ "second" : "other");'
+        got = find_candidates(text, 'OptiScaler/menu/test.cpp', RULES)
+        self.assertEqual([c.source for c in got], ['%s', 'first second', 'other'])
+        self.assertIn('/* join */', got[1].original_expr)
+
+    def test_common_helpers_and_late_fg_container_are_scanned(self):
+        text = 'Keybind("Neural Rendering", 14); AddDLSSRenderPreset("Quality Preset", &v); inputOptions = {{FGInput::A, "Visible option", "Help"}};'
+        got = find_candidates(text, 'OptiScaler/menu/menu_common.cpp', RULES)
+        self.assertEqual([(c.source,c.rewrite) for c in got],
+                         [('Neural Rendering',False),('Quality Preset',True),('Visible option',False),('Help',False)])
+
+    def test_key_name_fallbacks_and_nr_overlay_labels(self):
+        text = 'std::string KeyNameFromVirtualKeyCode(USHORT key) { if (key==0) return "Unbound"; return "Unknown"; } const char* leftText = swap ? "DLSS NR : ON" : "DLSS NR : OFF";'
+        got = find_candidates(text, 'OptiScaler/menu/menu_common.cpp', RULES)
+        self.assertEqual([c.source for c in got],
+                         ['Unbound','Unknown','DLSS NR : ON','DLSS NR : OFF'])
+        self.assertEqual(find_candidates(text, 'OptiScaler/core/test.cpp', RULES), [])
+
+    def test_conditional_toast_method_and_layout_measurement(self):
+        text = 'toast.setContent(enabled ? "On" : "Off"); ImGui::CalcTextSize("Use Value");'
+        got = find_candidates(text, 'OptiScaler/menu/menu_common.cpp', RULES)
+        self.assertEqual([c.source for c in got], ['On','Off','Use Value'])
+
     def test_concatenated_cpp_string_and_escapes(self):
         self.assertEqual(extract_string_expression('"Hello "  u8"world\\n"'), 'Hello world\n')
 

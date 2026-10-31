@@ -10,6 +10,51 @@ RULES=json.loads((ROOT/'Localization/scanner-rules.json').read_text(encoding='ut
 CURRENT_MENU='''#include "pch.h"\n#include "menu_common.h"\n\nvoid MenuCommon::Init(HWND InHwnd, bool isUWP)\n{\n    ImGuiIO& io = ImGui::GetIO();\n    if (io.Fonts->Fonts.empty() && Config::Instance()->UseHQFont.value_or_default())\n    {\n        ImFontAtlas* atlas = io.Fonts;\n        atlas->Clear();\n        ImFontConfig fontConfig;\n        if (Config::Instance()->FontSize.has_value())\n            fontSize = Config::Instance()->FontSize.value();\n        if (Config::Instance()->TTFFontPath.has_value())\n        {\n            io.FontDefault =\n                atlas->AddFontFromFileTTF(wstring_to_string(Config::Instance()->TTFFontPath.value()).c_str(), fontSize,\n                                          &fontConfig, io.Fonts->GetGlyphRangesDefault());\n        }\n        else\n        {\n            io.FontDefault = atlas->AddFontFromMemoryCompressedBase85TTF(hack_compressed_compressed_data_base85,\n                                                                         fontSize, &fontConfig);\n        }\n    }\n}\n'''
 
 class LocalizeSourceTests(unittest.TestCase):
+    def test_dlssnr_diagnostic_translation_is_ui_only_and_idempotent(self):
+        text = 'const char* reason = DlssNr::FailureReason();\nconst char* why = DlssNr::ExposureScan::Status();\n'
+        td,p=self.temp_file(text)
+        try:
+            localize_source.patch_dlssnr_diagnostics(p)
+            once=p.read_text()
+            self.assertIn('OptiScalerCN::Loc::TL(DlssNr::FailureReason())', once)
+            self.assertIn('reasonText.c_str()', once)
+            self.assertIn('whyText.c_str()', once)
+            localize_source.patch_dlssnr_diagnostics(p)
+            self.assertEqual(p.read_text(), once)
+        finally: td.cleanup()
+
+    def test_keybind_display_keeps_internal_name_and_widget_id(self):
+        text = 'Keybind(std::string name, int id) : name(name), id(id) {}\nImGui::Button(name.c_str());\n'
+        td,p=self.temp_file(text)
+        try:
+            localize_source.patch_dynamic_helpers(p)
+            once=p.read_text()
+            self.assertIn('name(name), id(id)', once)
+            self.assertIn('OptiScalerCN::Loc::TL(name) + "###" + name', once)
+            localize_source.patch_dynamic_helpers(p)
+            self.assertEqual(p.read_text(), once)
+        finally: td.cleanup()
+
+    def test_dlssnr_diagnostic_anchor_change_fails_closed(self):
+        td,p=self.temp_file('const char* reason = ChangedApi();')
+        try:
+            with self.assertRaisesRegex(RuntimeError, 'diagnostic anchor changed'):
+                localize_source.patch_dlssnr_diagnostics(p)
+        finally: td.cleanup()
+
+    def test_tooltip_dynamic_translation_after_literal_instrumentation(self):
+        text = 'ImGui::SetTooltip("%s", opt.tooltip.c_str());\nImGui::SetTooltip("%s", flag.description.c_str());\n'
+        td,p=self.temp_file(text)
+        try:
+            localize_source.instrument_file(p,'OptiScaler/menu/menu_common.cpp',RULES,{'%s':key_for_source('%s')})
+            localize_source.patch_dynamic_helpers(p)
+            once=p.read_text()
+            self.assertIn('OptiScalerCN::Loc::TL(opt.tooltip).c_str()', once)
+            self.assertIn('OptiScalerCN::Loc::TL(flag.description).c_str()', once)
+            localize_source.patch_dynamic_helpers(p)
+            self.assertEqual(p.read_text(), once)
+        finally: td.cleanup()
+
     def temp_file(self,text):
         td=tempfile.TemporaryDirectory(); p=Path(td.name)/'menu_common.cpp'; p.write_text(text,encoding='utf-8'); return td,p
 

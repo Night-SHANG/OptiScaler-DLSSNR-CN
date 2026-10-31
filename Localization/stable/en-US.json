@@ -1642,14 +1642,6 @@
       "text": "Reflex ID",
       "source_hash": "1c668f754d1b1c4c99b15823605ab2abba2235ff28ba6722112c03699b7aecca"
     },
-    "ui.auto.af60e2fad244": {
-      "text": "Best when can be used, some games are not compatible (e.g. Cyberpunk)\n",
-      "source_hash": "b411dd450cc73b57edd7e1087ee6fc87cfe2dddfb62f7ea7b3d90e1f178f5fb6"
-    },
-    "ui.auto.3cfc7e4a4be5": {
-      "text": "and will fallback to Aggressive",
-      "source_hash": "a562e5d3532f3d08a4ad7cf5f3e437624ee9e1974613f2b91f24e94b3a959f5b"
-    },
     "ui.auto.370e518fc5e1": {
       "text": "LatencyFlex mode",
       "source_hash": "732fa42b820bf93e4cb72beb0dea957f4b40ab4faf49219c639ab4533aeee9cd"
@@ -3553,6 +3545,606 @@
     "ui.auto.19700482e2de": {
       "text": "%3.0f%%  %.5f",
       "source_hash": "e22915aa221ef233b4a59ab4afdad141e3c7a209d6e51d267ce60191f9ba3108"
+    },
+    "ui.auto.9c74c2e5830d": {
+      "text": "That's likely unintended and will lead to big OptiScaler.log\nPlease disable logging to file and delete OptiScaler.log",
+      "source_hash": "ab98b926407fdc0dd34c04cf5cb2883b573a92100e63d70e2536140ec8005de7"
+    },
+    "ui.auto.9f4220f2095b": {
+      "text": "Reset##",
+      "source_hash": "a3b9f5d10fb672c84a8663b685de517f2e1bb50cb3996e32a534d023d79782f4"
+    },
+    "ui.auto.bd15195bf111": {
+      "text": "Synthesises detail in the upscaler's output, before frame generation sees it.\n\nNeeds two similarly named files beside OptiScaler, one character apart:\n  nvngx_dlssnr.dll       NVIDIA's model (~165 MB) -- you supply it\n  nvngx.dll_dlssnr.dll   the forwarder (~13 KB) -- ships in this package\nUndocumented and driven directly, so none of this is officially supported.",
+      "source_hash": "5a22bf065e3aa69dc8ec659ec1a4dff51f5b819d818375e5e7244ddf50190110"
+    },
+    "ui.auto.aec1e274ef14": {
+      "text": "Whether the model's edit is applied. Off shows the clean upscaler frame while the\npass keeps running -- so with Hold frame (under Compare) you can freeze a\nframe and toggle this to see the same frozen frame with and without Neural\nRendering. Leave it on for normal use.",
+      "source_hash": "82d60a833104d8f6c1681a7e736b8c012583d0c3b1edcf2fc6b8c398c01588ed"
+    },
+    "ui.auto.fdb965a33f33": {
+      "text": "  (model running, edit hidden)",
+      "source_hash": "0c88a0aa16d52eaf71089cdf9cd3ac68a19a9ca6b86c11233d6cc095d9d497f8"
+    },
+    "ui.auto.7123623b66fe": {
+      "text": "The filter that averages the model's above-native answer back to display size --\nthis is what turns supersampling into LESS noise rather than more. Sharper\nfilters (Lanczos3, Kaiser3) keep the most detail; softer ones (Bicubic,\nCatmull-Rom) are gentler on ringing. Independent of the Output Scaling\ndownscaler, so the two can differ and run at the same time.",
+      "source_hash": "2710f1fab89a7aeb7b1bb51e917a8e09a251af298b4ed6ec45c3cb70047d44e9"
+    },
+    "ui.auto.e69e0553392d": {
+      "text": "What fraction of the frame the model works at. Cost falls with the square of\nthis, so half resolution is roughly a quarter of the time.\n\nThe frame is never reduced. Only the model's contribution is computed small\nand enlarged, so the picture underneath is untouched whatever this says.\n\nWhat it trades: the shading the model adds is broad and survives enlargement;\nthe fine structure it synthesises does not, and softens. Worth having when the\npass costs more than you want to pay for the detail it returns.\n\nThe frame itself stays at full detail whatever this says -- only the\nmodel's own work is done small.",
+      "source_hash": "05acf23fe32c4ae062c67c4a9abf82df7fc93955f27c1e3e552ff6cbee4f6ea5"
+    },
+    "ui.auto.130cd7fe3334": {
+      "text": "Classic",
+      "source_hash": "ae25d6481fc1741ffee4a95cd05de7b6375f7e1b0c63c006640b366094f2c4a9"
+    },
+    "ui.auto.e80364e60301": {
+      "text": "Matched residual",
+      "source_hash": "ed8e25f3f6957dc5fb38444dbd858ffd366f26463cc1d3774bb0cd7a1775cec6"
+    },
+    "ui.auto.22f6c607085e": {
+      "text": "How the model's work is brought back up when it ran below the frame's size.\n\nClassic composes the model's small picture directly against the full-size\nframe. Those two disagree by the shrink's blur as well as by the model's edit,\nand the composition cannot tell them apart -- it reads the blur as brightness\nthe frame has and the model never saw. The lower the model resolution the\nlarger that error, and it is the colour shift that shows up at 50%.\n\nMatched residual carries up only the model's difference and lays it on the\nframe's own proxy, so both pictures being compared are full size and the only\nthing that came from the small raster is the edit itself.\n\nNo effect at 100% or above: there is no residual to carry and the two are\nidentical (supersampling brings its answer down to frame size before this).\n\nFrom hhkbble's multi-pass work on this fork.",
+      "source_hash": "0c6184650ed524e9fa3d59f36e8ce1cf13372b0e36cc008e660ebc3759881488"
+    },
+    "ui.auto.315bdb1d5cfb": {
+      "text": "How far the frame moves toward the model's picture.\n\nThe model's answer is not added to the frame -- it is a complete picture of its\nown, rescaled so its luminance sits where the original says it should. This\nblends between the two, so both ends are real pictures and everything between\nthem is one too.\n\n0 gives back exactly what the upscaler produced. 1 is the model's picture.\n\nAbove 1 carries on past it in the same direction, which is not something the\nmodel asked for -- use it to see what it is doing, then come back down. This\nis the control to push if you want more effect: Intensity belongs to the model\nand it decides what to do with it.",
+      "source_hash": "16b688fce9b567cad78fc995bdd84a9531ea49a4eb888f7b4fa1133b7b67c8aa"
+    },
+    "ui.auto.23d7227fd278": {
+      "text": "Whether the model's colour arrives with its light.\n\n0 keeps the game's own hue exactly -- every pixel is the original colour with\nonly its brightness carrying the model's verdict. Game-accurate colour, with\nthe detail. 1 brings the model's colour as well, in its own hue, clamped into\nAP1 so nothing unreachable is asked for.\n\nThis cannot shift hue on its own: it interpolates between two finished\npictures rather than adding a colour difference to one, which is what used to\nlet a warm subject come back green.\n\nAbove 1 it OVER-SATURATES: the colour keeps its hue but grows more vivid,\nand rolls off at the edge of what the display can show rather than clipping\ninto a flat blown patch. 1 is the model's own colour; push past it for punch.",
+      "source_hash": "41bf1b3426d7d26d98d7fa31e0c1ee86f54b6ecc1366049e52ac692a17f4ae27"
+    },
+    "ui.auto.30158df4c8fe": {
+      "text": "Off (soft knee)",
+      "source_hash": "4e9772fad51c2e6f4d15131e962af20648944f1e6ff7502d39c56b2ae7b3a724"
+    },
+    "ui.auto.401ef4f184b1": {
+      "text": "Neutwo proxy + composed",
+      "source_hash": "97a3b2e3bee915597d8fc895ac3beedbf1c040cb6585bc11a51d89b5adc61ade"
+    },
+    "ui.auto.26edb51a1761": {
+      "text": "Neutwo proxy + replace",
+      "source_hash": "ff2c3c709414cb442e12c6d6977b05fdd1e110462da2e9f186990b9442fbf555"
+    },
+    "ui.auto.7a9ee35aec49": {
+      "text": "Hybrid proxy + composed",
+      "source_hash": "397eeeccf60bf099454c3ea73b14bb74253880bcfc67fd22fc5a192e3814980c"
+    },
+    "ui.auto.384dc7a5efb1": {
+      "text": "Hybrid proxy + replace",
+      "source_hash": "2ba1bc4f1f16936afae86a6e95fb640cc82d024506b07c91aa0aee47719243aa"
+    },
+    "ui.auto.34438b2f403f": {
+      "text": "What the model is shown, and how its answer comes back.\n\nOff (soft knee): the default. It rolls highlights off so hard the model\ncannot resolve detail in them -- fine in soft-lit scenes, weak in bright ones.\n\nNeutwo composed: an unclipped curve so the model sees highlight detail, then\neverything above (Detail/Colour strength, highlight guard, palette). It wins in\nbright scenes, but the curve compresses MIDTONES too, so in soft-lit content it\ncan be worse than Off. It also shifts paper white -- re-check it when you switch.\n\nHybrid composed: the best of both, and the one to use. Identity in the\nmidtones -- as good as Off there -- and the unclipped roll only in the\nhighlights, so it recovers the detail Off crushes without giving up the\nmidtones Neutwo does. It barely shifts paper white.\n\nReplace: the raw model straight back through the exact inverse, none of the\ncomposition -- no guard, no palette, no strengths. Gorgeous where there are no\nbright lights, but they FLASH in motion. A reference, not a daily setting.\n\nHybrid replace: the raw model like Replace, but on the hybrid curve -- the\ndecode is identity in the midtones, so the flashing is confined to genuine\nbright highlights instead of everywhere. Most of Replace's detail, far more\nstable. If you love the Replace look but the flicker bothers you, use this.\n\nOff is byte-identical to before.",
+      "source_hash": "79e8193354ffb129c61406ebdffbc3f79fff18d762486b75c9b532f74cfbc284"
+    },
+    "ui.auto.80023f987bb0": {
+      "text": "Default leaves the choice to the model.\n\nNot the same scale as the super resolution or ray reconstruction presets --\nthe same number means something different here.",
+      "source_hash": "65faa4938c617b522ff89b536ca905544ad6f68f94a3bdadfdbbb5d54b1f3bd4"
+    },
+    "ui.auto.baf4bd7cbc7d": {
+      "text": "Default (standard)",
+      "source_hash": "1edcf76142e5b93260684c1d601f08fd8252a59bdf50e250485e2a9ced450717"
+    },
+    "ui.auto.ea26876daa9a": {
+      "text": "Natural",
+      "source_hash": "d6acb6d51cfc574936fc79bc06b8a3716f4a33ee69efb70dd7f59720d434ccd9"
+    },
+    "ui.auto.bf9d43402f3d": {
+      "text": "Cinematic",
+      "source_hash": "912d0988b06550601e2fd95360ea72f9bb25f0c7dd54bc741a20dc24f28242c9"
+    },
+    "ui.auto.471e6ec8b6e3": {
+      "text": "The model's own processing profiles.\n\nDefault (standard): the strongest. Boosts local contrast and deepens\nlighting, and can oversaturate or look stylised -- most of what reads as\n'the model changed my game's look' is this profile.\n\nNatural: the same detail work with a gentler hand. Keeps skin tones and\ntonal balance closer to what the game rendered.\n\nCinematic: tones down the shine and over-processing for a film-like look.\n\nRead when the model is built, so a change rebuilds it after a moment. The\nnames come from community testing; NVIDIA ships no names in the binaries.",
+      "source_hash": "fbc1149b13a1eac4090c9938bec4df1b4b53615306eb197eaab77b1365de3bc4"
+    },
+    "ui.auto.0ad6e4483007": {
+      "text": "Intensity",
+      "source_hash": "a6d01dcff3bfd333edf90a50daac2104cefab98b85bdbba67c8209ab75eb6447"
+    },
+    "ui.auto.67462b259bd7": {
+      "text": "The model's own strength control, applied inside it. Distinct from detail\nstrength above, which scales the result afterwards.",
+      "source_hash": "cb83020f2bb6224c6046bdeeb3fb9a13ec4f32bd989f8ff3f9f44dee601db759"
+    },
+    "ui.auto.c3a269fee466": {
+      "text": "Local structure",
+      "source_hash": "7a0e4aa521018f8f3f03e4db7d00cd2744a982bc7d14a9e1821c8412b634b01a"
+    },
+    "ui.auto.61db2f76041c": {
+      "text": "Local tone",
+      "source_hash": "19f12062bf09a376325d8cba6debc53f0c6746b50d287821b3609235a2cd561c"
+    },
+    "ui.auto.63eb0a41f4c8": {
+      "text": "Skin structure",
+      "source_hash": "4550add8a632c98ad162114c7ad43545b110ca0a2b2a7560ea0d96376cce682e"
+    },
+    "ui.auto.1c309df32e96": {
+      "text": "-1 means follow local structure, and is the model's own default -- it is not a\nstrength of zero. 0 and above set skin independently of the rest of the frame.",
+      "source_hash": "3c716fb15b794aad2cb054581d76ec54d84a2af4ab80021be14508681551ad32"
+    },
+    "ui.auto.b11493f30c5e": {
+      "text": "Lets the model find skin itself rather than treating the frame uniformly.",
+      "source_hash": "c0219a4be87850dab1c683fc01c3ebf6802fbd4611f04a5ede9050c1f339db5a"
+    },
+    "ui.auto.bd3d1bd0a25b": {
+      "text": "Paper white only",
+      "source_hash": "579c90e2aa273c322eeb480c944af29a199cd3adb5e322ffbfa55ab91b059f2c"
+    },
+    "ui.auto.954632f29ff6": {
+      "text": "The game's own exposure",
+      "source_hash": "852072b23a9690aa48cec6138fb1c06bfcc47a21ef8ddefeb969831ed463135f"
+    },
+    "ui.auto.17ca7255b998": {
+      "text": "A buffer the scan found",
+      "source_hash": "0acc79de4caedaa073a4d1f3b9be81a9f93af0470519f64e6a33cf1ca24bee71"
+    },
+    "ui.auto.31fbc40ece07": {
+      "text": "Where the number that divides the frame comes from.\n\nPaper white only -- the slider below and nothing else. Right for a\ngame whose exposure never moves, wrong the moment it does: one\nconstant cannot serve a cave and a field.\n\nThe game's own exposure -- read from the texture the game hands\nthe upscaler. The best source there is, because it is decided\nupstream and nothing this pass does can move it. Not every game\nsupplies one.\n\nA buffer the scan found -- for games that compute an exposure and\nnever pass it on. A GUESS: candidates are matched by shape, and in\nGTA V the best one tracks the real exposure but at its own scale,\nwhich the anchor's ratio cancels. Needs anchoring once, and checking\nafterwards.",
+      "source_hash": "9668b50a19833d75378dba59474e181496b7b005c737546c3616fd249d5e6cbf"
+    },
+    "ui.auto.4336677c35e0": {
+      "text": "Paper white (editing point %d)",
+      "source_hash": "673ac2de00bab9e925578c4463e8450475b1121feb0778fda6901fe80c1a1503"
+    },
+    "ui.auto.62c7614fcf41": {
+      "text": "The white point for the selected calibration point, or -- with no row\nselected -- the value the next Anchor press captures.\n\nSet it until the picture looks right here, then Anchor. Move to very\ndifferent light and do it again: two points fix the buffer's real\nrelationship and the white point holds between them. Click a row below\nto come back and adjust that point; click it again to let go.",
+      "source_hash": "a0664ae2f75866e6dd24fd60691dd2cfb3845e382772cb0286c16f0266bb802c"
+    },
+    "ui.auto.832d2d48177c": {
+      "text": "A multiplier on the scan's white point, and the control you adjust between\nanchor points: dial it until the picture looks right in the current\nlight, then press Anchor here -- it captures the trimmed value as a new\npoint and resets the trim to 1.",
+      "source_hash": "ce1a900ff2e214711cce286d758d239a16743d1695b181ef1049910da7eff081"
+    },
+    "ui.auto.0804a3b949b3": {
+      "text": "Trim (x the game's exposure)",
+      "source_hash": "4e94c75492ebea11dc02cf6c5c4931da5b0a917e1c9d3ab0607529c23944a4ef"
+    },
+    "ui.auto.ee16a910d8c9": {
+      "text": "A multiplier on the exposure the game supplied. 1.00x takes its number\nexactly, and that is the right answer here.\n\nThis is not a fudge factor. If a game needs the trim far from 1 to look\nright, that is evidence the exposure being read is wrong for that game,\nnot that the game wants trimming. Somewhere around 0.8 to 1.25 is honest\ntuning; reaching for 4 means something upstream is broken and the trim is\nhiding it.\n\nYour manual paper white is kept separately and comes back untouched if\nyou switch the option above off.",
+      "source_hash": "f149fec0fa6711dfb66efe7b723e3c65f554a1533cc44847878ee27d01ed63cb"
+    },
+    "ui.auto.c62e60c6bd45": {
+      "text": "What the frame is divided by before the model sees it. There is no other white\npoint; this is the whole of it.\n\nThe model was trained on finished frames where white sits at 1. The\nupscaler's output is linear and open-ended, so something has to say where\nwhite is -- and where the game's DLSS buffer is linear HDR, that number is\nrarely anywhere near 1. Measured in Monster Hunter Wilds it takes 16 or more\nbefore the model's detail reaches the frame at all, and the value that suits\na shaded camp is still too small for the same game out in daylight.\n\nToo low and almost every pixel trips the soft knee: the model is shown a\nflat near-white picture, its answer is scaled away, and only its hue\nsurvives -- which reads as a colour cast rather than as lost detail. Too\nhigh and it is shown an underexposed one, its answer degrades, and this same\nnumber multiplies that error on the way out.\n\nRaise it until the picture stops improving. Past that point it does not\nplateau, it gets worse in the other direction.\n\nThis was once a multiplier on a measured white point. The measurement is\ngone: it read scene brightness rather than where white belongs, handed the\nmodel a picture three times too dark, and left the highlight path nothing to\ngive back.\n\nAt strength zero the frame is still bit-identical whatever this says.",
+      "source_hash": "c780021a55ecfca11c8e95d86f06e2ba583e72f1b4daadd58e692f7bb9aebd16"
+    },
+    "ui.auto.125c008717e2": {
+      "text": "The most the pass may move any pixel, as a multiple of what it already was, in\nboth directions -- a pixel may not be brightened past this nor darkened past\nits reciprocal. Lights are where the model has least to say and rescaling its\nanswer does the most damage; 2x leaves detail intact while stopping a strip\nlight turning into a string of coloured cells. Raise it only if bright areas\nlook clipped.",
+      "source_hash": "87ec1e66270d652e59ec4a09bfa10bd0e16ed0468e2a34f77aeecedbc51c2bc1"
+    },
+    "ui.auto.a8587a69791c": {
+      "text": "A lamp in the corner: red for dark, green for full light, and the\nshades between, with the reading beside it.\n\nIt is how you see at a glance that the scan is TRACKING rather\nthan merely running. Walk into shade and it should slide toward\nred; step out and it should go green. If it moves the wrong way,\nthat is what the setting above is for.\n\nPurely a readout. It changes nothing.",
+      "source_hash": "e06940b8ec4b8895a2dda4c2f63a3eb95f9b2e63ba27ba2936093856bfde0672"
+    },
+    "ui.auto.fb18b9ad048a": {
+      "text": "Make the picture look right, then press this -- it captures the current look\nas a point. For the first point use the Paper white slider above; for\nevery point after, move to different light and use the Trim, which the\nAnchor then bakes into a new point.\n\nThe first press calibrates one point -- the white point then\nfollows the scan by ratio from there, as before. Walk into very\ndifferent light, set paper white again, and press it again: the\nsecond point pins down the buffer's real curve and everything\nbetween the two is right, not just near one anchor. Up to eight.\n\nThe table is per game and shareable: one person calibrates a game\nand the numbers are the same for everyone who takes the profile.",
+      "source_hash": "87f86f6b47a1e1e9d099aad7476593f7871d9812998cab29a165a2e6fa49fad2"
+    },
+    "ui.auto.6410d0f7dcc8": {
+      "text": "%s scan %.4f  ->  white %.2f%s",
+      "source_hash": "b7aafd194d5d6c73ba1cdd9a120b4e36dbe981fcd27bfe3acd0f60e5d71b5dea"
+    },
+    "ui.auto.5b9c711312e3": {
+      "text": "   [editing]",
+      "source_hash": "0c2b9730fce1769c2718c4c9adcebcdc040a3097dda24c78998c4182b6b4a9cf"
+    },
+    "ui.auto.7f0fa6fb2d34": {
+      "text": "Flip this if the picture gets worse in the direction it should be\ngetting better. Most engines store an exposure that falls as\nthe scene brightens; some store its reciprocal, and a buffer\nfound by shape does not say which. Add a second anchor point in\ndifferent light and this is decided for you, so it disappears.",
+      "source_hash": "494ac8f7279bd5ec6bbb0b7145bcf74bd3066bad66b140c21756ea0525343fa5"
+    },
+    "ui.auto.9eb53acc8573": {
+      "text": "Freezes the frame the model works on. While held, change paper white, the\nstrengths, the reversible mode, the model preset -- anything below the\nupscaler -- and only that setting moves; the scene does not.\n\nWhat it CANNOT show: DLSS/FSR/XeSS upscaler presets or anything upstream\n(the upscaler is not re-run on a held frame), and the game's own HUD and\npost-processing, which run after this pass and keep updating. The white\npoint stops being measured and holds its value while frozen, so it cannot\ndrift and confound the comparison.\n\nHide the menu and it stays held. Untoggle to resume.",
+      "source_hash": "391a64f55095071953279952cbb793776ad7b5c38b2a4319f56a6e73e978fb87"
+    },
+    "ui.auto.5f65cb44b228": {
+      "text": "Side by side",
+      "source_hash": "a3d7b387c34df52c5a611045b53215ebba668ddb9026a813b5aff0d50599fb3e"
+    },
+    "ui.auto.a0e0273a78ad": {
+      "text": "Wipe",
+      "source_hash": "3404644e01177ee996b69247aa3967e7a3f66702c5ff0f7270591e8d9622183b"
+    },
+    "ui.auto.223c3299c170": {
+      "text": "Shows the pass against itself, so the two can be seen at once rather than\ntoggled and remembered.\n\nSide by side puts the whole frame in each half, untouched on the left and\nedited on the right. Both halves are squeezed horizontally to fit, so it is\nfor looking at rather than playing in.\n\nWipe cuts a single frame at the split and resamples nothing, so the picture\nis the right shape and can be played normally. Drag the split below; it is a\nstored setting and stays put once the menu is closed.\n\nNeither needs the menu open to keep working. A hairline marks the join.",
+      "source_hash": "efe06fb0f71a1860a565cdc66f35b8ee2274eda5b43df3a5cd50b738596addab"
+    },
+    "ui.auto.f9dd7c8e30a6": {
+      "text": "Writes which side is which onto the frame itself, so a screenshot still\nsays so after it has left this machine. Drawn into the picture's own\nplane: in the wipe the split reveals and hides the label exactly as it\ndoes the images, and there is nothing to drag. Swap sides moves the\nlabels with their pictures.",
+      "source_hash": "972e3a85e6511f36bf8124745abbc423f44b3206f9e51650e8bbef053d8f6e36"
+    },
+    "ui.auto.c282ad6dd524": {
+      "text": "Puts the edited frame on the other side.\n\nWorth doing once you have decided which you prefer: the eye is not\neven-handed about left and right, and a difference can read as an\nimprovement purely from where it sits. If the same side still wins after\nswapping, it is the pass you are seeing and not the placement.",
+      "source_hash": "6ccbd83d8d95ea74d57082d117b8e707619961527ead212cfcb14dfefff4d00e"
+    },
+    "ui.auto.1680c50f081f": {
+      "text": "How much of the frame each half shows.\n\nA half is half as wide as the frame and just as tall, so the frame\ncannot fill it and keep its shape.\n\nAt 1 the whole frame is there at its right proportions, with bars above\nand below. At 2 the half is filled and the sides are cropped away\ninstead. Anything between trades one for the other.",
+      "source_hash": "4f8601aa4944c8b5919fb9e16ec44961c9c8acb6a9966b626c1a55d70a9a7186"
+    },
+    "ui.auto.88bafc690d23": {
+      "text": "Where the wipe cuts. Left of it is the frame as the upscaler produced it,\nright of it is the frame the model edited.",
+      "source_hash": "c3c5792f333c2a77a6cab6d57b0c5aa22338904ed37aa44a662ce01ad3132514"
+    },
+    "ui.auto.79f49544d53e": {
+      "text": "Proxy (what the model sees)",
+      "source_hash": "84ff9d56b310f7ee68eeec1416d6109e0a7718901630aa53b215721a42c2508e"
+    },
+    "ui.auto.e19243d70b4e": {
+      "text": "Model output (raw)",
+      "source_hash": "dec2b63a81d8da6bb1dbebe7e6f33964706fbc18b2bafba0dd378f7581809469"
+    },
+    "ui.auto.56d9f58358cc": {
+      "text": "Difference (amplified)",
+      "source_hash": "e90b56703c2611e7635b01262f7027dbe624eca4594618299be67f40e7710454"
+    },
+    "ui.auto.91ce956637ce": {
+      "text": "Proxy is the picture handed to the model -- if that looks wrong, the white point\nis wrong and nothing downstream can be judged.\n\nDifference shows what the model actually changed, amplified twenty times and\ncentred on grey. A flat grey frame there means it is doing nothing.",
+      "source_hash": "048aed52f629b348c876a0d1a69d44b66f85f1bc1db6cdd8d0735c0059814835"
+    },
+    "ui.auto.7e3fe7c3ea29": {
+      "text": "not started",
+      "source_hash": "7a7400f466699598334c05b36a21691ad254b552c78b90606c9177efc22fd652"
+    },
+    "ui.auto.a0dfd4f6df89": {
+      "text": "could not allocate the readback buffers",
+      "source_hash": "23373589752bcb8b21a1024a74fbf1be49bd564190ad1729468bff93ce94d8e7"
+    },
+    "ui.auto.e3287b6061f2": {
+      "text": "no buffer in this game is shaped like an exposure",
+      "source_hash": "731f5ab67f16a0830178d084044957f0659beabb37f51e59892aa8f53f8f66a7"
+    },
+    "ui.auto.5553c187b667": {
+      "text": "Error while compiling a shader!",
+      "source_hash": "5b5c53d9fc417c11f4f2489f8cf161a9c76caaf24a2d35bad46bf0cf70d4ae28"
+    },
+    "ui.auto.94a96543200e": {
+      "text": "You are missing the following dlls from the streamline folder:\n",
+      "source_hash": "5944b9d3efa476407050ba1f816743f8a32a962af471fe1c05232b9507146b38"
+    },
+    "ui.auto.3a6d1a65cef0": {
+      "text": "Can't init FSR FG\nAre you missing the required DLLs?",
+      "source_hash": "e84ed7ba32112810c5597bf4fa45f8680caeb922081e91d4fede00089c0b54f6"
+    },
+    "ui.auto.78247856dac9": {
+      "text": "Can't init XeFG\nAre you missing the required DLLs?",
+      "source_hash": "66e5a7124d268a816fa6a2599a63b5c9eed2f348db2579b85a6201c66db52f29"
+    },
+    "ui.auto.b81959bf086c": {
+      "text": "Can't init DLSSG Output\nAre you missing the streamline folder?",
+      "source_hash": "6e79609f89dd9ecf10e4f842f201a90973a5823122703964609e2e34043c4991"
+    },
+    "ui.auto.cf7167f7e8c2": {
+      "text": "Best when can be used, some games are not compatible (e.g. Cyberpunk)\nand will fallback to Aggressive",
+      "source_hash": "f9e917e4b67a8f5d3ab550d0fba01bb791232ed84eb3fcad2bcf7f3d43906083"
+    },
+    "ui.auto.4856ea8afba7": {
+      "text": "Falling back to FSR 2.2",
+      "source_hash": "e7506ec26d4fa59a4663ecc621cdd4486562d7f75191eecb83f66b70ad7c8d09"
+    },
+    "ui.auto.50c4c35ac3a9": {
+      "text": "Falling back to XeSS",
+      "source_hash": "a3566816ed445488413d4fdfeb4deebfda34362dee2f215b2703cbd71c3aeec4"
+    },
+    "ui.auto.1351bb9361ee": {
+      "text": "Falling back to FSR 2.1.2",
+      "source_hash": "4ddf7f344713aa0787bffa255dbe8f457b51f6340b81414e05e849a32e149c01"
+    },
+    "ui.auto.00aa84c10b99": {
+      "text": "Failed to create a shared texture\nMake sure you are using at least Wine/Proton 11",
+      "source_hash": "14f897eb855e83a5c64b951b95be47fc76650baeed2376172dfb2c64ca5d5ce9"
+    },
+    "ui.auto.2fedcaaa860e": {
+      "text": "Upscaler failed to run!",
+      "source_hash": "b56065ec389295dd66a8793b9e8ffe23010f6918996c5de5867a6a5eb0c6cd3e"
+    },
+    "ui.auto.07886415d7ee": {
+      "text": "nvngx.dll_dlssnr.dll is missing",
+      "source_hash": "cc1e7637267f596aa6bcae2262ca10a410e00b3d5ddbafef6220648c740dc61f"
+    },
+    "ui.auto.e02b5373ad94": {
+      "text": "nvngx.dll_dlssnr.dll would not load",
+      "source_hash": "2829bc2bf90cfa4685ff9621110824e9a2c748c7ea89073da95a3f29d98e5099"
+    },
+    "ui.auto.985b8ac8a2a9": {
+      "text": "the forwarder is missing its exports",
+      "source_hash": "6afba0584ea15b76fe5469946f8a1ef05bfeac2b636a05e27b557b31e96670eb"
+    },
+    "ui.auto.783ed75a5bf8": {
+      "text": "the NGX core would not initialise",
+      "source_hash": "7cb5edead41d7981989ea08d917c8b8aa5d92717542651853f37b399813c5b47"
+    },
+    "ui.auto.5ac629803bc4": {
+      "text": "the NGX core has no capability parameters",
+      "source_hash": "64d52c5c0c9ff724fd4a4e5d5d5a4dc8a03acccc1e74feb53325b40b2091f4f1"
+    },
+    "ui.auto.9c65a153aa53": {
+      "text": "the NGX core refused its capability parameters",
+      "source_hash": "462cdce436c6d047c4fca6f12a17fbcf8e636b6bc2ddf81b8d3715a15ff7b606"
+    },
+    "ui.auto.fb16d16e2e9e": {
+      "text": "nvngx_dlssnr.dll was not found beside OptiScaler or the game",
+      "source_hash": "f58c3b3460f3607b80a2bc7f2510cc6f6dee5ff40c5a975ac0649c872b74fec7"
+    },
+    "ui.auto.505be35dc07c": {
+      "text": "the model would not initialise",
+      "source_hash": "d56d63f45bd6498a1a000f5a01bd04c6de8e0c2a3c38da0008c4bb64075cbf87"
+    },
+    "ui.auto.b9d09f0d9e90": {
+      "text": "the colour codec would not compile",
+      "source_hash": "7471902e8993377786ffb458f2f3fd0ee96407a20b0c8f997a0d36e1d6c682bb"
+    },
+    "ui.auto.050c588ffcf5": {
+      "text": "the game's depth or motion vectors could not be made readable",
+      "source_hash": "8f30d545060713f8023cabbb59e1c4c5d898a417b025e82ad7f3d49d48a6c220"
+    },
+    "ui.auto.43a4ef75bd3d": {
+      "text": "the proxy path could not run the model",
+      "source_hash": "19b73a48cde9e46dde48baed4e9bc77a90fc2ae8b3decc370d9a5577d6549aee"
+    },
+    "ui.auto.bca6b19651e9": {
+      "text": "the model refused to run",
+      "source_hash": "6a5859c30c931bf18e554b4cf50f8fd2dac0f2a17a8d8562978824f449bb14d3"
+    },
+    "ui.auto.9c24f2b186a5": {
+      "text": "{} is not available.\nFalling back to {}.",
+      "source_hash": "1f7664cf90cd5ead402f90fb23e121fa766714a828fc6760e92fe3fa9936dd29"
+    },
+    "ui.auto.589b9087814e": {
+      "text": "{} is not available and can't fallback",
+      "source_hash": "944347b8b4d667297700a16f1855c51ede7d1e919583e3586a8d720e9529a690"
+    },
+    "ui.auto.8b8cbadb6131": {
+      "text": "Couldn't load libxess.dll\nCheck if the dll is present",
+      "source_hash": "8137ed6de522f8d13e0efa13496d9f086d09ef2c0e83cb117e9b88481687a776"
+    },
+    "ui.auto.58be238dd555": {
+      "text": "Couldn't create XeSS context\n{}",
+      "source_hash": "7304a1c7fde13ea43eb2554a6f5c45230f85ebdc4ff55b34ad1587ee89bfd075"
+    },
+    "ui.auto.b4e9232d42ef": {
+      "text": "Couldn't load libxess_dx11.dll\nCheck if the dll is present",
+      "source_hash": "c3976b861e4aae80cf5d3b7ff5cb616f10d3a31aa85e3911afbb95b32bc3e2c7"
+    },
+    "ui.auto.fa0bfebd7847": {
+      "text": "Can't load amd_fidelityfx_dx12\nDid you forget to extract that dll?",
+      "source_hash": "d7242fcf690bf26f8a8281badd1a2ac3b2d95f9a57eaa7f706087ee06bb8660a"
+    },
+    "ui.auto.8fbf9c7d0bf5": {
+      "text": "Unbound",
+      "source_hash": "6c9fa4e7961ea18064615efdabb4ea377a35f348b4c70853cc347492749ac73a"
+    },
+    "ui.auto.bc7819b34ff8": {
+      "text": "Unknown",
+      "source_hash": "b764cdc0eab7137467211272fa539f1260d1bf2e71bcf6ff3bdc960f5c16aa14"
+    },
+    "ui.auto.e0049a66519c": {
+      "text": "On",
+      "source_hash": "130011756125313c72f2cab730db4347e2841526d236a89cb25f38789fa49229"
+    },
+    "ui.auto.887daaeaa1c9": {
+      "text": "DLSS NR : ON",
+      "source_hash": "1d999cd63456bca550b6f07468517b34d6f89a600327c834d2555681aa1249c9"
+    },
+    "ui.auto.b75145897362": {
+      "text": "DLSS NR : OFF",
+      "source_hash": "f4edde52d7f0b961dd3d855c9d95c983a5977ce6ac6630acd812b742149a97a1"
+    },
+    "ui.auto.eb93476451f0": {
+      "text": " ({} Doesn't support more than {}x)",
+      "source_hash": "a33312e6ae1fc4f29b8d94bd94873dabc78f0a4bd68c9b33293438bd21873f9e"
+    },
+    "ui.auto.94fb307d654e": {
+      "text": " ({} off)",
+      "source_hash": "c06a766e1b89bfb4a635c8b9d268ed7153c2f1305d3719952989e87ea03e5a55"
+    },
+    "ui.auto.6f2734cbe666": {
+      "text": " ({} x{})",
+      "source_hash": "bf709d61d00f54fb2039a2588fd7bfc854717e161db00688901db5e7f71d69ee"
+    },
+    "ui.auto.8e34943c353e": {
+      "text": "Simulation",
+      "source_hash": "45314e97b0c26a862b5411d0a943d801583e13bb5d104382ed7a2f4773969e66"
+    },
+    "ui.auto.154da6d4dc1b": {
+      "text": "RenderSubmit",
+      "source_hash": "2b4713d34f5b385f50b2b2760b9247b7c17ea8d3d3af6d3f21a8ab6205dac897"
+    },
+    "ui.auto.4e9f7a31eef4": {
+      "text": "Present",
+      "source_hash": "43f9b89c0b9d22d8110ead813ea3949f20592a8bfc3c777d2d49e64da3b0cc9b"
+    },
+    "ui.auto.b5c7d8b545ea": {
+      "text": "Driver",
+      "source_hash": "9fe4c68ec20dda7c6b1d3f760e5e6af6b9802897cd59f084b99c68b2ac01574c"
+    },
+    "ui.auto.89422a4b6271": {
+      "text": "RenderQueue",
+      "source_hash": "95e7d02c935d0d1ea495654ee431e85f1ab74c12ffd032f0b3deb84708faf729"
+    },
+    "ui.auto.e018cfb511ee": {
+      "text": "GpuRender",
+      "source_hash": "4880e7e873e86537817fcdc3669974e2d0efea25533a235aba02b5dbcb889fdf"
+    },
+    "ui.auto.15a207d82214": {
+      "text": "On + Ext",
+      "source_hash": "2fb105e383fc68740cc8fb9b9e66bb84558126ff0b715bd9cf6e134238fe8b5d"
+    },
+    "ui.auto.47715efd55f8": {
+      "text": "Just Ext",
+      "source_hash": "7c0c5a7d0bb5be653c4eaf3a55d452d0927333152b4115e640c41eefa1ea98d2"
+    },
+    "ui.auto.37ee1fb5481f": {
+      "text": "Override Preset",
+      "source_hash": "9cea63393766c4e811ef3671778ad1ce5ec06c83888b03ae5f176db1329e0dc8"
+    },
+    "ui.auto.3120d76cf371": {
+      "text": "DLAA Preset",
+      "source_hash": "ee72ea1915db8ac7624bf2a72b116b7c4c4a952657ad57707753f937f68b3dc5"
+    },
+    "ui.auto.43891b35a99a": {
+      "text": "UltraQ Preset",
+      "source_hash": "ce50022e89a971ccc7bd43b2d994aa5398ee211bc342efc6fe593fa8eeab782b"
+    },
+    "ui.auto.65f498cfe552": {
+      "text": "Quality Preset",
+      "source_hash": "d730f56026c68ded1f1f683046f1699b59290449b0a4c4c2295047c02eab053d"
+    },
+    "ui.auto.84c337b236c3": {
+      "text": "Balanced Preset",
+      "source_hash": "5f72a283af002d13d89765730edf93894f84c08cdfaf87802636c64e4eced1ad"
+    },
+    "ui.auto.07e724ff00bd": {
+      "text": "Perf Preset",
+      "source_hash": "d29093df1feb489ad8ab4e38ca55053db469c86ebffa1947eda9d6ad17e58257"
+    },
+    "ui.auto.a27c5ab1f230": {
+      "text": "UltraP Preset",
+      "source_hash": "a8a89d27d3c7101b8db06a559d918de1be86e9dd2fc52192842258fc45032589"
+    },
+    "ui.auto.1c9306cd791f": {
+      "text": "OptiFG (Upscaler)",
+      "source_hash": "e8d691a8b21638b8b9e90728c2509d55ad07821e0749d662784e4ef2eee3a922"
+    },
+    "ui.auto.cff7a591518d": {
+      "text": "Upscaler must be enabled\n\nCan be used with any FG Output, but might be imperfect with some\nTo prevent UI glitching, HUDfix required",
+      "source_hash": "8536ba96d88fb131ac3f4a423ffd237a178e759ca4e757db62d9c567ce0c0ea9"
+    },
+    "ui.auto.87149bf80417": {
+      "text": "DLSSG via Streamline",
+      "source_hash": "6d897aa8e4d8a73cd3b23853b8f900efeb6610979d76e79f7dc3c5356be6b929"
+    },
+    "ui.auto.6d2fea459e8d": {
+      "text": "Can be used with any FG Output\n\nRequires enabling DLSS-FG in game settings\nSupports HUDless out of the box\n\nLimited to games that use Streamline",
+      "source_hash": "53f63aa1fcabacc565b5e797e9fb959c26d266174473a2fcb840056fdd5304e1"
+    },
+    "ui.auto.8909616dbfd7": {
+      "text": "DLSSG via Nvngx",
+      "source_hash": "dd766f84885610885954c40893492ff714b0f299e63ea3b610236b71e468d83f"
+    },
+    "ui.auto.614d7af28e90": {
+      "text": "Limited to variants of FSR FG\n\nRequires enabling DLSS-FG in game settings\nSupports HUDless out of the box\nUses Streamline swapchain for pacing",
+      "source_hash": "13047e7bdaa6dbabbd0f848c607fa54f95e55ae48fbe63822bccd75b9fe6ad3a"
+    },
+    "ui.auto.eb3bfe56255f": {
+      "text": "FSR 3.1 FG",
+      "source_hash": "ac913f7ac5c8ba74d4833bc0bb9de0611d32ec0b7c12d6d24dda31cdc715cdbb"
+    },
+    "ui.auto.521fdb316d6c": {
+      "text": "Can be used with any FG Output\n\nRequires enabling FSR-FG in game settings\nSupports HUDless out of the box",
+      "source_hash": "8d99d960510b58c5be0ae28eca332eeab81481aeff2cc69d587d91540c4e6681"
+    },
+    "ui.auto.bb451b06bba4": {
+      "text": "FSR 3.0 FG",
+      "source_hash": "99851a2481bad9ee51e62c9b97d72557e4c7a369e34bb29076f701e96137752c"
+    },
+    "ui.auto.936c676a8416": {
+      "text": "FSR FG",
+      "source_hash": "1564475c50b22306b0f530a0057fdca4e39bdeec0946105589f219ffdf03d8dd"
+    },
+    "ui.auto.69ee8643e0b4": {
+      "text": "FSR3/4-FG, RDNA4 autoupgrades to FSR4-FG\n\nFSR4-FG sometimes better/worse than XeFG",
+      "source_hash": "9e95299cbe456e5bf2739bd6949277fe2b91591ce11fed3cf075cbd573ebb65c"
+    },
+    "ui.auto.688c214c3fe5": {
+      "text": "DLSSG output\ncan be used in conjuction with Nukem's for example",
+      "source_hash": "fed168678aecb725d4e4bee375ea62a14a747e7571cc45c0e9c681dfffeba7a1"
+    },
+    "ui.auto.f7decf4a0a09": {
+      "text": "XeFG - heaviest, but best universal FG\n\nXeFG 3 overall deals best with HUD\n\nEnable UI Composition if HUD ghosting",
+      "source_hash": "f9b323c1517e2a477ee700857b0fb15a52515e0bf230bd81a63d629195680a8f"
+    },
+    "ui.auto.5273b49a8e1b": {
+      "text": "None (Real DLSSG)",
+      "source_hash": "c21078b5f5efa98f50a56d848a8977ded2a361003afd9c8f5b02cd12d325af62"
+    },
+    "ui.auto.8c2c4b3c4e60": {
+      "text": "Real DLSSG, For RTX 40xx and above",
+      "source_hash": "d68b85ffbeb6ad7622f45fbca07dcb9b0949ab8db6019263ade6a14ea1e973af"
+    },
+    "ui.auto.0183de320a81": {
+      "text": "Nukem's",
+      "source_hash": "cba21e52089ffb97d675bb240a75d9949dff04e33ee0c35ce58a14b5a421fda7"
+    },
+    "ui.auto.0ecf2b250d87": {
+      "text": "FSR 3 FG",
+      "source_hash": "f28b7b8f1fc9c1ce3b54c188eae2c711fb833e6fa8f80a2d4e8a191232ce3fbb"
+    },
+    "ui.auto.f601466a9d7e": {
+      "text": "Enabler",
+      "source_hash": "966318b8383bb496e6878035fd40f8b2e96a331a6ca82a71a53f6f2d3b074b9b"
+    },
+    "ui.auto.695e442bf97a": {
+      "text": "FSR 3 MFG",
+      "source_hash": "8c0f36054254afb0021b4e7edefb994b4b47eacc488abd8e6a7c94c7a3bad182"
+    },
+    "ui.auto.1b9ee8be7d56": {
+      "text": "FSR 3/4 FG",
+      "source_hash": "807d272601ad8d38ad1ab872eb743648cb4103b73430ae806a547bdaf1287e98"
+    },
+    "ui.auto.4b1b401359bb": {
+      "text": "FSR 3/4 FG using the FFX",
+      "source_hash": "a0877c025b93cc9b5766b48aa0bdad020e3641ffbe026b6d71d4ca02d2abd7c1"
+    },
+    "ui.auto.42a870de562d": {
+      "text": "FFX + Enabler",
+      "source_hash": "01787e96f82bfd5a82821d62c71299fd02dd1da21c6d4e2db5f8f939f6731d60"
+    },
+    "ui.auto.9bf7b7ceba8e": {
+      "text": "FFX for the middle fake frame, Enabler for the rest\n\n2x - FFX\n3x - Enabler\n4x - FFX + Enabler\n5x - Enabler\n6x - FFX + Enabler",
+      "source_hash": "119e76b2303a098dc13b5abb5aeaae2532cc34937dd42416ea4cd9a0ffddf3ae"
+    },
+    "ui.auto.c3f7e9501822": {
+      "text": "FSR Anti-Lag 2.0",
+      "source_hash": "c5128f27f4c397e414b1624488521c43cec62e9fe25124a9db824067d25bd106"
+    },
+    "ui.auto.c64e7f3d0810": {
+      "text": "Vulkan AntiLag",
+      "source_hash": "546f8d729800d605f8c534c588bea5840a8b1dac5c7f2bf066c0a6d271fb5302"
+    },
+    "ui.auto.898b3534228a": {
+      "text": "Game's XeLL",
+      "source_hash": "d1c460f123728a05e8b1f8c84e7f30a1b1123529eee8b81bc056e720c8998438"
+    },
+    "ui.auto.b4a100ebc4c1": {
+      "text": "Fallback",
+      "source_hash": "325e84939c6410fa2e09372b2b49328fdf22136efbd5ca1d6746667edfb92abc"
+    },
+    "ui.auto.1166b320c83f": {
+      "text": " (RTSS)",
+      "source_hash": "e3dcba7f802998d818da57f8bb8c939a9d716a74c0264d358a6751dc4e755396"
+    },
+    "ui.auto.f6ce7b7762e1": {
+      "text": " (inactive)",
+      "source_hash": "04fb4ea05719cfc365f0f0f8b784f3abdd49e6912aeb5a910fdf4ff6e61b9e45"
+    },
+    "ui.auto.7aeee1096f9b": {
+      "text": "Only FSR1 and Bicubic are supported when Ratio is below 1.0.",
+      "source_hash": "de864898f915add738b6d717efc85bb7b012272e0663735f146d42898391facd"
+    },
+    "ui.auto.1d0c8304baed": {
+      "text": "Color",
+      "source_hash": "6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653"
+    },
+    "ui.auto.df0e298e3562": {
+      "text": "Depth",
+      "source_hash": "f1dbc33978a95b952b19bfc0da8f928e8e3958930810988de2f6e4bd8b27ce01"
+    },
+    "ui.auto.862ee3b17a82": {
+      "text": "Exposure",
+      "source_hash": "cc5454a4b7ce211370dcd2aa0ae58d6b564eee7940b42de516d05f5b269c414b"
+    },
+    "ui.auto.8aadf1657da5": {
+      "text": "Mask",
+      "source_hash": "e368929abd3614e92ad17e56175b67d1f6ba94aca92ab43b7f16f31764ff7447"
+    },
+    "ui.auto.57f5f5efbc59": {
+      "text": "Menu",
+      "source_hash": "99af6606ff9d6cd5154d4d4e9c21e325086d3e904677cdb41d363c8a3480f862"
+    },
+    "ui.auto.6c31f0812b8a": {
+      "text": "FPS Overlay Cycle",
+      "source_hash": "d991c22962b414ff90b5ae44bfdedabb7f9decf0cd03bd16704c60cca2a8141f"
+    },
+    "ui.auto.56a8f43337be": {
+      "text": "Open Wiki (?)",
+      "source_hash": "668cc0d362a9d1b3091db966c3c7717551a07ed59e63dbe2bc5bfce6dbfcf54d"
     }
   }
 }

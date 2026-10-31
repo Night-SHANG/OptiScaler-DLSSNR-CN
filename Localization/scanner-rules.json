@@ -163,7 +163,10 @@
     "std::vector<MenuOption",
     "std::vector<MenuOption<",
     "const char* q[]",
-    "std::vector<FlagDefinition>"
+    "std::vector<FlagDefinition>",
+    "inputOptions =",
+    "outputOptions =",
+    "nvngxOptions ="
   ],
   "exclude_exact": [
     "",
@@ -215,6 +218,92 @@
           0
         ]
       }
+    },
+    {
+      "glob": "OptiScaler/dlssnr/DlssNr_Menu.cpp",
+      "calls": {
+        "HelpMarker": [
+          0
+        ],
+        "DeferredSlider": [
+          0
+        ],
+        "snprintf": [
+          2
+        ]
+      },
+      "ui_initializers": [
+        "runSuffix",
+        "resetId"
+      ],
+      "vararg_literal_calls": {
+        "snprintf": 3
+      }
+    },
+    {
+      "glob": "OptiScaler/shaders/dlssnr/DlssNr_Dx12.cpp",
+      "ui_initializers": [
+        "g_nr.reason"
+      ],
+      "rewrite_initializers": false
+    },
+    {
+      "glob": "OptiScaler/dlssnr/DlssNr_ExposureScan.cpp",
+      "ui_initializers": [
+        "status",
+        "g_scan.status"
+      ],
+      "rewrite_initializers": false
+    },
+    {
+      "glob": "OptiScaler/dlssnr/*.cpp",
+      "calls": {
+        "StrFmt": [
+          0
+        ]
+      }
+    },
+    {
+      "glob": "OptiScaler/hooks/Streamline_Hooks.cpp",
+      "ui_initializers": [
+        "toastMsg"
+      ]
+    },
+    {
+      "glob": "OptiScaler/menu/menu_common.cpp",
+      "calls": {
+        "Keybind": [
+          0
+        ],
+        "AddResourceBarrier": [
+          0
+        ],
+        "AddDLSSRenderPreset": [
+          0
+        ],
+        "AddDLSSDRenderPreset": [
+          0
+        ],
+        "drawTiming": [
+          1
+        ],
+        "currentMethod.append": [
+          0
+        ],
+        "ImGui::CalcTextSize": [
+          0
+        ]
+      },
+      "ui_initializers": [
+        "leftText",
+        "rightText",
+        "spoofingText",
+        "currentMethod",
+        "disabledReason",
+        "preview",
+        "selectedAF",
+        "autoText"
+      ]
     }
   ],
   "vararg_literal_calls": {
@@ -237,12 +326,29 @@
   },
   "c_string_array_globs": [
     "OptiScaler/menu/*.cpp",
-    "OptiScaler/dlssnr/**/*.cpp"
+    "OptiScaler/dlssnr/**/*.cpp",
+    "OptiScaler/dlssnr/*.cpp"
   ],
   "conditional_literal_calls": [
-    "ScopedCollapsingHeader"
+    "ScopedCollapsingHeader",
+    "ImGui::SliderFloat",
+    ".setContent"
   ],
   "c_string_array_exclude_regex": [
     "^[A-Z][A-Z0-9]+(?:_[A-Z0-9]+)+$"
+  ],
+  "scan_imgui_toasts": true,
+  "catalog_only_calls": [
+    "Keybind"
+  ],
+  "display_return_scopes": [
+    {
+      "glob": "OptiScaler/menu/menu_common.cpp",
+      "anchors": [
+        "KeyNameFromVirtualKeyCode(USHORT",
+        "auto formatFg =",
+        "GetMenuOptionLabel(const std::vector"
+      ]
+    }
   ]
 }
