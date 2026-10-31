@@ -1,0 +1,446 @@
+name: Correct fixed release metadata once
+"on":
+  push:
+    branches: ["release-metadata/20261101-d1217d0c"]
+    paths: [".github/workflows/correct-release-metadata-20261101.yml"]
+permissions:
+  contents: read
+concurrency:
+  group: correct-release-20261101-430076229
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Fixed release verify
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          """One-shot candidate retention. Stdlib only; no artifact code execution.
+          CI entry is generated inline with an immutable per-repository manifest.
+          """
+          import hashlib,io,json,os,posixpath,re,stat,sys,urllib.request,urllib.error,urllib.parse,zipfile
+          class Stop(RuntimeError):pass
+          def require(ok,message):
+           if not ok:raise Stop(message)
+          def sha(data):return hashlib.sha256(data).hexdigest()
+          def extract_assets(blob,m):
+           require(len(blob)==m['artifact']['size_in_bytes'],'archive size mismatch')
+           require('sha256:'+sha(blob)==m['artifact']['digest'],'archive hash mismatch')
+           with zipfile.ZipFile(io.BytesIO(blob)) as z:
+            infos=z.infolist();require(len(infos)<=4096,'too many members');seen=set();total=0
+            for i in infos:
+             n=i.filename
+             require(n and not n.startswith('/') and '\\' not in n and ':' not in n and not any(p in ('..','.','') for p in n.rstrip('/').split('/')),'unsafe zip path')
+             require(n not in seen,'duplicate member');seen.add(n)
+             mode=i.external_attr>>16
+             require(stat.S_IFMT(mode) in (0,stat.S_IFREG,stat.S_IFDIR),'nonregular zip entry')
+             require(not i.flag_bits&1,'encrypted entry')
+             total+=i.file_size
+             require(total<=1024*1024*1024 and i.file_size<=512*1024*1024,'archive expansion limit')
+             require(i.file_size<=max(1,i.compress_size)*1000,'compression ratio limit')
+            result={}
+            for a in m['assets']:
+             require(re.fullmatch(r'[A-Za-z0-9_.-]+',a['name']) and a['name'] not in result,'unsafe asset name')
+             require(a['member'] in seen,'missing asset')
+             data=z.read(a['member']);require(len(data)==a['size'] and sha(data)==a['sha256'],'asset mismatch')
+             result[a['name']]=data
+            return result
+          
+          def guard(m,e,event):
+           expected={'GITHUB_ACTIONS':'true','GITHUB_EVENT_NAME':'push','GITHUB_REPOSITORY':m['repository'],'GITHUB_REF':'refs/heads/'+m['publish_branch'],'GITHUB_RUN_ATTEMPT':'1','GITHUB_WORKFLOW_REF':m['repository']+'/'+m['workflow_path']+'@refs/heads/'+m['publish_branch']}
+           for k,v in expected.items():require(e.get(k)==v,'context mismatch: '+k)
+           require(re.fullmatch('[0-9a-f]{40}',e.get('GITHUB_SHA','')),'invalid publisher sha')
+           require(event.get('after')==e['GITHUB_SHA'] and event.get('before')==m['head'],'publisher must be single push after reviewed source')
+           require(event.get('forced') is False and event.get('deleted') is False,'forced/deleted event')
+           require(event.get('repository',{}).get('full_name')==m['repository'],'event repository mismatch')
+          
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+           def redirect_request(self,*args,**kwargs):return None
+          class API:
+           def __init__(self,token,write=False):self.token=token;self.write=write;self.opener=urllib.request.build_opener(NoRedirect)
+           def request(self,method,path,body=None,binary=False):
+            require(method=='GET' or self.write,'read-only API')
+            url=path if path.startswith('https://') else 'https://api.github.com'+path
+            u=urllib.parse.urlsplit(url);require(u.scheme=='https' and u.hostname in ('api.github.com','uploads.github.com') and not u.username,'untrusted API endpoint')
+            data=body if isinstance(body,bytes) else json.dumps(body).encode() if body is not None else None
+            # Actions artifact archives negotiate a JSON API redirect; release assets use octet-stream.
+            accept='application/octet-stream' if binary and re.fullmatch(r'/repos/[^/]+/[^/]+/releases/assets/[0-9]+',u.path) else 'application/vnd.github+json'
+            endpoint=method+' '+u.path
+            print('GitHub request:',endpoint,flush=True)
+            headers={'Authorization':'Bearer '+self.token,'Accept':accept,'X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/octet-stream' if isinstance(body,bytes) else 'application/json'}
+            try:
+             response=self.opener.open(urllib.request.Request(url,data=data,method=method,headers=headers),timeout=180)
+            except urllib.error.HTTPError as ex:
+             if ex.code==404 and method=='GET' and not binary:return None
+             if ex.code in (301,302,303,307,308) and method=='GET' and binary:
+              target=ex.headers.get('Location','');host=urllib.parse.urlsplit(target)
+              require(host.scheme=='https' and not host.username and host.hostname and (host.hostname.endswith('.blob.core.windows.net') or host.hostname=='release-assets.githubusercontent.com' or host.hostname.endswith('.githubusercontent.com')),'untrusted download redirect')
+              # Fresh request without Authorization; no automatic chained redirects.
+              try:response=self.opener.open(urllib.request.Request(target,headers={'Accept':'application/octet-stream'}),timeout=180)
+              except Exception:raise Stop('redirected download failed (URL redacted)') from None
+             else:raise Stop('GitHub HTTP '+str(ex.code)+' at '+endpoint+' (body/query redacted)') from None
+            except Exception:raise Stop('GitHub request failed at '+endpoint+' (details redacted)') from None
+            with response:
+             data=response.read(512*1024*1024+1);require(len(data)<=512*1024*1024,'response exceeds limit')
+            return data if binary else json.loads(data)
+          
+          def verify_publisher(api,m,publisher):
+           root='/repos/'+m['repository']
+           ref=api.request('GET',root+'/git/ref/heads/'+m['publish_branch'])
+           require(ref and ref['object']['sha']==publisher,'publisher branch changed')
+           commit=api.request('GET',root+'/commits/'+publisher)
+           require(commit and [p['sha'] for p in commit['parents']]==[m['head']],'publisher parent mismatch')
+           require(len(commit['files'])==1 and commit['files'][0]['filename']==m['workflow_path'] and commit['files'][0]['status']=='added','publisher must only add fixed workflow')
+          
+          # Only the fixed metadata correction writes below are permitted.
+          RELEASE_KEYS=('id','tag_name','target_commitish','name','body','draft','prerelease')
+          ASSET_KEYS=('id','name','label','size','digest','state')
+          def asset_snapshot(a):
+           out={k:a.get(k) for k in ASSET_KEYS}
+           # GitHub uses either null or empty string for an asset without a display label.
+           if out['label'] is None:out['label']=''
+           return out
+          def release_snapshot(r):
+           return {**{k:r.get(k) for k in RELEASE_KEYS},'assets':sorted((asset_snapshot(a) for a in r['assets']),key=lambda a:a['id'])}
+          def validate_manifest(m):
+           a={a['id']:a for a in m['release']['assets']};require(len(a)==len(m['release']['assets']),'duplicate original assets')
+           require(len({c['id'] for c in m['changes']})==len(m['changes']),'duplicate change id')
+           changed={}
+           for c in m['changes']:
+            require(c['id'] in a,'unknown asset id');require(set(c)=={'id','name','label'},'unexpected asset changes')
+            require(re.fullmatch(r'[A-Za-z0-9_.-]+',c['name']) and c['name'] not in ('.','..'),'unsafe name');changed[c['id']]=c
+           names=[changed.get(i,x)['name'] for i,x in a.items()]
+           require(len(set(names))==len(names),'asset name collision')
+           require(m['checksum']['name']=='CURRENT-DOWNLOAD-SHA256SUMS.txt' and m['checksum']['name'] not in names,'checksum collision')
+           packages=[(changed.get(i,x)['name'],x['digest']) for i,x in a.items() if x['name'].endswith(('.zip','.exe'))]
+           require(packages and all(re.fullmatch('sha256:[0-9a-f]{64}',d) for n,d in packages),'missing package digest')
+           require(m['checksum']['text']==''.join(d[7:]+'  '+n+'\n' for n,d in sorted(packages)),'checksum content mismatch')
+           require(set(m['patch'])=={'name','body','prerelease','draft','make_latest'} and m['patch']['draft'] is False,'invalid release patch')
+           require((m['patch']['prerelease'],m['patch']['make_latest']) in ((True,'false'),(False,'true')),'latest/prerelease mismatch')
+          
+          def authorize_write(m,method,path,body):
+           root='/repos/'+m['repository'];rid=str(m['release']['id'])
+           if method=='PATCH' and path==root+'/releases/'+rid:
+            require(body==m['patch'],'release patch mismatch');return
+           for c in m['changes']:
+            if method=='PATCH' and path==root+'/releases/assets/'+str(c['id']):
+             require(body=={'name':c['name'],'label':c['label']},'asset patch mismatch');return
+           url='https://uploads.github.com'+root+'/releases/'+rid+'/assets?name='+m['checksum']['name']
+           if method=='POST' and path==url:
+            require(body==m['checksum']['text'].encode(),'checksum bytes mismatch');return
+           raise Stop('write outside exact correction scope')
+          
+          class CorrectionAPI(API):
+           def __init__(self,token,m,write=False):super().__init__(token,write);self.m=m
+           def request(self,method,path,body=None,binary=False):
+            if method!='GET':authorize_write(self.m,method,path,body)
+            return super().request(method,path,body,binary)
+          
+          def verify_identity(api,m):
+           root='/repos/'+m['repository']
+           tag=api.request('GET',root+'/git/ref/tags/'+urllib.parse.quote(m['release']['tag_name'],safe=''))
+           require(tag and tag['object']['type']=='commit' and tag['object']['sha']==m['head'],'tag target changed')
+           main=api.request('GET',root+'/git/ref/heads/main');require(main and main['object']['sha']==m['main'],'main changed')
+           for run in m['runs']:
+            got=api.request('GET',root+'/actions/runs/'+str(run['id']))
+            require(got and all(got.get(k)==run[k] for k in ('id','head_sha','run_attempt')) and got['repository']['full_name']==m['repository'] and got['status']=='completed' and got['conclusion']=='success','original CI binding changed')
+          
+          def verify_history(api,m):
+           root='/repos/'+m['repository']
+           for expected in m['old_releases']:
+            actual=api.request('GET',root+'/releases/'+str(expected['id']))
+            require(actual and release_snapshot(actual)==expected,'historical release changed')
+          
+          def latest_id(api,m):
+           got=api.request('GET','/repos/'+m['repository']+'/releases/latest');return got['id'] if got else None
+          
+          def verify(api,m):
+           validate_manifest(m);verify_identity(api,m);verify_history(api,m)
+           require(latest_id(api,m)==m['latest_before'],'latest changed')
+           got=api.request('GET','/repos/'+m['repository']+'/releases/'+str(m['release']['id']))
+           require(got and release_snapshot(got)==release_snapshot(m['release']),'release snapshot changed')
+           require(not got.get('immutable',False),'release is immutable')
+           return got
+          
+          def expected_assets(m,checksum_id=None):
+           out={a['id']:asset_snapshot(a) for a in m['release']['assets']}
+           for c in m['changes']:out[c['id']].update(c)
+           if checksum_id is not None:
+            data=m['checksum']['text'].encode();out[checksum_id]={'id':checksum_id,'name':m['checksum']['name'],'label':'','size':len(data),'digest':'sha256:'+sha(data),'state':'uploaded'}
+           return sorted(out.values(),key=lambda a:a['id'])
+          
+          def verify_assets(api,m,checksum_id=None):
+           got=api.request('GET','/repos/'+m['repository']+'/releases/'+str(m['release']['id'])+'/assets?per_page=100')
+           require(isinstance(got,list) and sorted((asset_snapshot(a) for a in got),key=lambda a:a['id'])==expected_assets(m,checksum_id),'corrected assets mismatch')
+          
+          def correct(api,m):
+           verify(api,m);root='/repos/'+m['repository'];rid=str(m['release']['id']);last='none'
+           try:
+            for c in m['changes']:
+             path=root+'/releases/assets/'+str(c['id']);body={'name':c['name'],'label':c['label']}
+             authorize_write(m,'PATCH',path,body);last='asset PATCH '+str(c['id'])
+             result=api.request('PATCH',path,body)
+             expected=next(a for a in expected_assets(m) if a['id']==c['id'])
+             require(asset_snapshot(result)==expected,'asset PATCH response mismatch')
+            verify_assets(api,m)
+            data=m['checksum']['text'].encode();url='https://uploads.github.com'+root+'/releases/'+rid+'/assets?name='+m['checksum']['name']
+            authorize_write(m,'POST',url,data);last='checksum upload'
+            added=api.request('POST',url,data);newid=added['id']
+            require(newid not in {a['id'] for a in m['release']['assets']},'checksum id collision')
+            verify_assets(api,m,newid)
+            verify_identity(api,m);verify_history(api,m)
+            require(latest_id(api,m)==m['latest_before'],'latest changed before final PATCH')
+            current=api.request('GET',root+'/releases/'+rid)
+            require(all(current.get(k)==m['release'].get(k) for k in RELEASE_KEYS),'release metadata changed before final PATCH')
+            path=root+'/releases/'+rid;authorize_write(m,'PATCH',path,m['patch']);last='final release PATCH'
+            api.request('PATCH',path,m['patch'])
+            final=api.request('GET',path)
+            require(all(final.get(k)==m['release'].get(k) for k in ('id','tag_name','target_commitish')),'release identity changed')
+            require(all(final.get(k)==m['patch'][k] for k in ('name','body','draft','prerelease')),'final release metadata mismatch')
+            verify_assets(api,m,newid);verify_identity(api,m);verify_history(api,m)
+            require(latest_id(api,m)==(m['release']['id'] if m['patch']['make_latest']=='true' else m['latest_before']),'final latest mismatch')
+            print('CORRECTION_VERIFIED',json.dumps({'repository':m['repository'],'release_id':m['release']['id'],'title':m['patch']['name'],'prerelease':m['patch']['prerelease'],'checksum_asset_id':newid}))
+            return final
+           except Exception as ex:
+            raise Stop('correction outcome may be partial or uncertain after '+last+'; do not retry automatically; reconcile fixed release/asset IDs first'+('; '+str(ex) if isinstance(ex,Stop) else '')) from None
+          
+          def correction_main(m,mode):
+           guard(m,os.environ,json.load(open(os.environ['GITHUB_EVENT_PATH'])))
+           require(mode in ('verify','correct'),'invalid mode')
+           api=CorrectionAPI(os.environ['GITHUB_TOKEN'],m,write=mode=='correct')
+           verify_publisher(api,m,os.environ['GITHUB_SHA'])
+           if mode=='verify':verify(api,m);print('READ_ONLY_CORRECTION_CHECK_PASSED',m['repository'])
+           else:correct(api,m)
+          
+          MANIFEST=json.loads('{"changes": [{"id": 695988488, "label": "OptiScaler DLSSNR CN 0.2.0 \\u00b7 \\u6b63\\u5f0f\\u6c49\\u5316\\u5305", "name": "OptiScaler-DLSSNR-CN-v0.2.0-zh20261101.zip"}, {"id": 695988696, "label": "\\u539f\\u59cb\\u6784\\u5efa\\u6765\\u6e90\\u8bb0\\u5f55\\uff08\\u4fdd\\u7559\\u65e7\\u6587\\u4ef6\\u540d\\u4e0e\\u521d\\u6b21\\u53d1\\u5e03\\u72b6\\u6001\\uff09", "name": "provenance.json"}, {"id": 695988712, "label": "\\u539f\\u59cb\\u6784\\u5efa\\u6821\\u9a8c\\u8bb0\\u5f55\\uff08\\u65e7\\u6587\\u4ef6\\u540d\\uff09\\uff1b\\u5f53\\u524d\\u4e0b\\u8f7d\\u8bf7\\u7528 CURRENT-DOWNLOAD-SHA256SUMS.txt", "name": "SHA256SUMS"}], "checksum": {"name": "CURRENT-DOWNLOAD-SHA256SUMS.txt", "text": "fbd440acda346a5bff32adc25ccf1683d93bfc2a49b45d58349aa46795c0d46b  OptiScaler-DLSSNR-CN-v0.2.0-zh20261101.zip\\n"}, "head": "d1217d0c000303e929f6ac1d7cd09d2fcfc57899", "latest_before": 387538843, "main": "a525c3071bb31d8955a6e1014562278df6baac3b", "old_releases": [{"assets": [{"digest": "sha256:f5226bc8a530c4591276ce4fd2056a2b183a2ae91a88b52784bb024ff426ad17", "id": 559200018, "label": "", "name": "OptiScaler-DLSSNR-CN-v0.2.0-dlssnr-973761621353.zip", "size": 131301114, "state": "uploaded"}, {"digest": "sha256:77e6f21c867e3a79a01850e131c65fe8be327158c91d968496e36ffd70af723a", "id": 559200174, "label": "", "name": "build-metadata.json", "size": 388, "state": "uploaded"}], "body": "# OptiScaler DLSSNR CN\\r\\n\\r\\n- \\u5bf9\\u5e94\\u5b98\\u65b9\\u7248\\u672c/\\u5f15\\u7528\\uff1a`v0.2.0-dlssnr`\\r\\n- \\u5bf9\\u5e94\\u5b98\\u65b9 commit\\uff1a`973761621353b99bee3dc7d4bb27b117fef2644f`\\r\\n- \\u4e2d\\u6587\\u8986\\u76d6\\uff1a**888/888 (100.00%)**\\r\\n- \\u4eba\\u5de5\\u786e\\u8ba4\\uff1a233\\r\\n- \\u673a\\u5668\\u7ffb\\u8bd1\\uff1a655\\r\\n- \\u5c1a\\u672a\\u7ffb\\u8bd1\\uff08\\u81ea\\u52a8\\u82f1\\u6587 fallback\\uff09\\uff1a0\\r\\n- \\u6e90\\u6587\\u53d8\\u5316\\u3001\\u5f85\\u590d\\u6838\\uff1a0\\r\\n- \\u672c\\u6b21\\u626b\\u63cf\\u65b0\\u589e UI\\uff1a0\\r\\n- \\u672c\\u6b21\\u626b\\u63cf\\u53d8\\u5316 UI\\uff1a0\\r\\n- \\u672c\\u6b21\\u626b\\u63cf\\u5220\\u9664 UI\\uff1a0\\r\\n- \\u672c\\u6b21\\u65b0\\u589e/\\u66f4\\u65b0\\u6709\\u6548\\u4e2d\\u6587\\uff1a0\\r\\n- \\u6784\\u5efa\\u65e5\\u671f\\uff08UTC\\uff09\\uff1a2026-09-12T12:05:07.738232+00:00\\r\\n\\r\\n\\u8fd9\\u662f\\u793e\\u533a\\u4e2d\\u6587\\u6d3e\\u751f\\u6784\\u5efa\\uff0c\\u4e0d\\u662f\\u5bf9\\u5e94\\u4e0a\\u6e38 Fork \\u7684\\u5b98\\u65b9\\u53d1\\u5e03\\u3002\\u672a\\u8986\\u76d6\\u6216\\u5f85\\u590d\\u6838\\u7684\\u9879\\u76ee\\u4f1a\\u663e\\u793a\\u5b98\\u65b9\\u82f1\\u6587\\uff0c\\u4e0d\\u4f1a\\u663e\\u793a\\u7a7a\\u767d\\u3002\\r\\n", "draft": false, "id": 387538843, "name": "OptiScaler DLSSNR CN - v0.2.0-dlssnr", "prerelease": false, "tag_name": "cn-v0.2.0-dlssnr-97376162", "target_commitish": "main"}], "patch": {"body": "## \\u7248\\u672c\\u8bf4\\u660e\\n\\u672c\\u8f6e\\u51c6\\u786e\\u5bf9\\u5e94\\u4e0a\\u6e38\\u6b63\\u5f0f\\u7248 v0.2.0-dlssnr\\u3002\\u672c\\u5305\\u73b0\\u4e3a\\u793e\\u533a\\u6b63\\u5f0f\\u6c49\\u5316\\u53d1\\u5e03\\uff0c\\u4e0d\\u662f\\u4e0a\\u6e38\\u5b98\\u65b9\\u53d1\\u884c\\u3002\\n\\n\\u6c49\\u5316\\u66f4\\u65b0\\u6807\\u8bc6\\uff1a2026-11-01\\uff08\\u5317\\u4eac\\u65f6\\u95f4\\uff09\\u3002\\u8fd9\\u662f\\u540c\\u4e00\\u6279\\u5df2\\u6784\\u5efa\\u3001\\u5df2\\u9a8c\\u6536\\u6587\\u4ef6\\u7684\\u547d\\u540d\\u4e0e\\u53d1\\u5e03\\u72b6\\u6001\\u4fee\\u6b63\\uff0c\\u6ca1\\u6709\\u91cd\\u65b0\\u7f16\\u8bd1\\u3001\\u91cd\\u6253\\u5305\\u6216\\u4fee\\u6539\\u7a0b\\u5e8f\\u5185\\u5bb9\\u3002\\n\\n## \\u4e0b\\u8f7d\\u4e0e\\u6821\\u9a8c\\n\\u8bf7\\u6309\\u6587\\u4ef6\\u540d\\u4e2d\\u7684\\u4ea7\\u54c1\\u7248\\u672c\\u548c\\u5305\\u7c7b\\u578b\\u4e0b\\u8f7d\\uff1b\\u4f7f\\u7528\\u9644\\u4ef6 **CURRENT-DOWNLOAD-SHA256SUMS.txt** \\u6821\\u9a8c\\u5f53\\u524d\\u4e0b\\u8f7d\\u6587\\u4ef6\\u3002\\n\\u539f\\u59cb SHA256SUMS\\u3001provenance.json\\u3001build-metadata.json\\uff08\\u5982\\u6709\\uff09\\u53ca .sha256\\uff08\\u5982\\u6709\\uff09\\u5747\\u539f\\u6837\\u4fdd\\u7559\\uff0c\\u662f\\u521d\\u6b21\\u6784\\u5efa/\\u53d1\\u5e03\\u7684\\u5386\\u53f2\\u8bc1\\u636e\\uff0c\\u53ef\\u80fd\\u5f15\\u7528\\u65e7\\u6587\\u4ef6\\u540d\\u6216\\u521d\\u6b21\\u5019\\u9009\\u72b6\\u6001\\uff0c\\u4e0d\\u4f5c\\u4e3a\\u5f53\\u524d\\u547d\\u540d\\u8bf4\\u660e\\u3002\\n\\n## \\u9a8c\\u8bc1\\u8303\\u56f4\\nWindows CI\\u3001\\u81ea\\u52a8\\u6d4b\\u8bd5\\u3001\\u5305\\u5b8c\\u6574\\u6027\\u53ca\\u54c8\\u5e0c\\u68c0\\u67e5\\u5df2\\u901a\\u8fc7\\u3002\\u5c1a\\u672a\\u8fdb\\u884c\\u771f\\u5b9e\\u6e38\\u620f\\u3001GPU \\u6216 GUI \\u89c6\\u89c9\\u8fd0\\u884c\\u9a8c\\u8bc1\\uff1b\\u6b63\\u5f0f\\u6c49\\u5316\\u53d1\\u5e03\\u4e0d\\u8868\\u793a\\u627f\\u8bfa\\u6240\\u6709\\u6e38\\u620f\\u517c\\u5bb9\\uff0c\\u4e5f\\u4e0d\\u8868\\u793a\\u6240\\u6709\\u52a8\\u6001\\u6587\\u672c\\u5df2\\u4eba\\u5de5\\u9010\\u5c4f\\u6838\\u9a8c\\u3002\\n\\n## \\u6587\\u4ef6\\u540d\\u5bf9\\u7167\\n- `OptiScaler-DLSSNR-CN-dlss-neural-rendering-973761621353.zip` \\u2192 `OptiScaler-DLSSNR-CN-v0.2.0-zh20261101.zip`\\n\\nRelease \\u9875\\u9762\\u3001\\u6807\\u7b7e\\u3001\\u6e90\\u4ee3\\u7801\\u63d0\\u4ea4\\u53ca\\u539f\\u6709\\u6587\\u4ef6 asset ID \\u4fdd\\u6301\\u4e0d\\u53d8\\uff1b\\u4e0b\\u8f7d\\u6587\\u4ef6\\u6539\\u540d\\u540e\\uff0c\\u65e7\\u6587\\u4ef6\\u540d\\u7684\\u76f4\\u63a5\\u4e0b\\u8f7d\\u94fe\\u63a5\\u53ef\\u80fd\\u5931\\u6548\\uff0c\\u8bf7\\u4ece\\u672c\\u53d1\\u5e03\\u9875\\u4f7f\\u7528\\u65b0\\u94fe\\u63a5\\u3002\\u6807\\u7b7e\\u4e2d\\u7684 candidate \\u662f\\u4fdd\\u7559\\u7684\\u5386\\u53f2\\u5b9a\\u4f4d\\u7b26\\uff0c\\u5f53\\u524d\\u53d1\\u5e03\\u6027\\u8d28\\u4ee5\\u672c\\u9875\\u6807\\u8bb0\\u548c\\u7248\\u672c\\u8bf4\\u660e\\u4e3a\\u51c6\\u3002\\u65e7\\u7248\\u53d1\\u5e03\\u4e0e\\u9644\\u4ef6\\u672a\\u4fee\\u6539\\u3002\\n\\n## \\u6784\\u5efa\\u6765\\u6e90\\n- \\u6c49\\u5316\\u6e90\\u63d0\\u4ea4\\uff1a`d1217d0c000303e929f6ac1d7cd09d2fcfc57899`\\n- \\u5b9e\\u9645 CI checkout\\uff1a`cdddec9d07be63ceda0c907c518054e45a790a6c`\\n- \\u6e90\\u7801\\u6811\\uff1a`c653c5adf51e5ad21a3cf2af402d30f98c080059`\\n- \\u4e0a\\u6e38\\u63d0\\u4ea4\\uff1a`973761621353b99bee3dc7d4bb27b117fef2644f`\\n", "draft": false, "make_latest": "true", "name": "OptiScaler DLSSNR CN 0.2.0 \\u00b7 \\u6c49\\u5316\\u66f4\\u65b0 2026-11-01", "prerelease": false}, "publish_branch": "release-metadata/20261101-d1217d0c", "release": {"assets": [{"digest": "sha256:fbd440acda346a5bff32adc25ccf1683d93bfc2a49b45d58349aa46795c0d46b", "id": 695988488, "label": "", "name": "OptiScaler-DLSSNR-CN-dlss-neural-rendering-973761621353.zip", "size": 131313656, "state": "uploaded"}, {"digest": "sha256:a978f7a299f4840d7d5fc97107eed88278441f29526a3ec326e3cd9daa535d94", "id": 695988696, "label": "", "name": "provenance.json", "size": 2554, "state": "uploaded"}, {"digest": "sha256:beeb1ea557df4e693fb649fe6c64d1f8dfd125035bf897504977e6e85e678296", "id": 695988712, "label": "", "name": "SHA256SUMS", "size": 208, "state": "uploaded"}], "body": "Candidate prerelease of reviewed localization maintenance; not a stable release.\\nSource: d1217d0c000303e929f6ac1d7cd09d2fcfc57899\\nActual CI checkout: cdddec9d07be63ceda0c907c518054e45a790a6c\\nCommon tree: c653c5adf51e5ad21a3cf2af402d30f98c080059\\nUpstream: 973761621353b99bee3dc7d4bb27b117fef2644f\\nWindows CI and package checks passed. Game/GPU/UI visual runtime validation not performed.\\nNo previous release is replaced.\\n", "draft": false, "id": 430076229, "name": "OptiScaler-DLSSNR-CN 2026-10-31 candidate d1217d0c", "prerelease": true, "tag_name": "cn-candidate-20261031-d1217d0c", "target_commitish": "d1217d0c000303e929f6ac1d7cd09d2fcfc57899"}, "repository": "Night-SHANG/OptiScaler-DLSSNR-CN", "runs": [{"head_sha": "d1217d0c000303e929f6ac1d7cd09d2fcfc57899", "id": 41220997459, "run_attempt": 1}, {"head_sha": "d1217d0c000303e929f6ac1d7cd09d2fcfc57899", "id": 41220997329, "run_attempt": 1}], "workflow_path": ".github/workflows/correct-release-metadata-20261101.yml"}')
+          try:
+           correction_main(MANIFEST,'verify')
+          except Stop as ex:
+           print(str(ex),file=sys.stderr)
+           sys.exit(1)
+          PY
+  correct:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    needs: verify
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Fixed release correct
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          """One-shot candidate retention. Stdlib only; no artifact code execution.
+          CI entry is generated inline with an immutable per-repository manifest.
+          """
+          import hashlib,io,json,os,posixpath,re,stat,sys,urllib.request,urllib.error,urllib.parse,zipfile
+          class Stop(RuntimeError):pass
+          def require(ok,message):
+           if not ok:raise Stop(message)
+          def sha(data):return hashlib.sha256(data).hexdigest()
+          def extract_assets(blob,m):
+           require(len(blob)==m['artifact']['size_in_bytes'],'archive size mismatch')
+           require('sha256:'+sha(blob)==m['artifact']['digest'],'archive hash mismatch')
+           with zipfile.ZipFile(io.BytesIO(blob)) as z:
+            infos=z.infolist();require(len(infos)<=4096,'too many members');seen=set();total=0
+            for i in infos:
+             n=i.filename
+             require(n and not n.startswith('/') and '\\' not in n and ':' not in n and not any(p in ('..','.','') for p in n.rstrip('/').split('/')),'unsafe zip path')
+             require(n not in seen,'duplicate member');seen.add(n)
+             mode=i.external_attr>>16
+             require(stat.S_IFMT(mode) in (0,stat.S_IFREG,stat.S_IFDIR),'nonregular zip entry')
+             require(not i.flag_bits&1,'encrypted entry')
+             total+=i.file_size
+             require(total<=1024*1024*1024 and i.file_size<=512*1024*1024,'archive expansion limit')
+             require(i.file_size<=max(1,i.compress_size)*1000,'compression ratio limit')
+            result={}
+            for a in m['assets']:
+             require(re.fullmatch(r'[A-Za-z0-9_.-]+',a['name']) and a['name'] not in result,'unsafe asset name')
+             require(a['member'] in seen,'missing asset')
+             data=z.read(a['member']);require(len(data)==a['size'] and sha(data)==a['sha256'],'asset mismatch')
+             result[a['name']]=data
+            return result
+          
+          def guard(m,e,event):
+           expected={'GITHUB_ACTIONS':'true','GITHUB_EVENT_NAME':'push','GITHUB_REPOSITORY':m['repository'],'GITHUB_REF':'refs/heads/'+m['publish_branch'],'GITHUB_RUN_ATTEMPT':'1','GITHUB_WORKFLOW_REF':m['repository']+'/'+m['workflow_path']+'@refs/heads/'+m['publish_branch']}
+           for k,v in expected.items():require(e.get(k)==v,'context mismatch: '+k)
+           require(re.fullmatch('[0-9a-f]{40}',e.get('GITHUB_SHA','')),'invalid publisher sha')
+           require(event.get('after')==e['GITHUB_SHA'] and event.get('before')==m['head'],'publisher must be single push after reviewed source')
+           require(event.get('forced') is False and event.get('deleted') is False,'forced/deleted event')
+           require(event.get('repository',{}).get('full_name')==m['repository'],'event repository mismatch')
+          
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+           def redirect_request(self,*args,**kwargs):return None
+          class API:
+           def __init__(self,token,write=False):self.token=token;self.write=write;self.opener=urllib.request.build_opener(NoRedirect)
+           def request(self,method,path,body=None,binary=False):
+            require(method=='GET' or self.write,'read-only API')
+            url=path if path.startswith('https://') else 'https://api.github.com'+path
+            u=urllib.parse.urlsplit(url);require(u.scheme=='https' and u.hostname in ('api.github.com','uploads.github.com') and not u.username,'untrusted API endpoint')
+            data=body if isinstance(body,bytes) else json.dumps(body).encode() if body is not None else None
+            # Actions artifact archives negotiate a JSON API redirect; release assets use octet-stream.
+            accept='application/octet-stream' if binary and re.fullmatch(r'/repos/[^/]+/[^/]+/releases/assets/[0-9]+',u.path) else 'application/vnd.github+json'
+            endpoint=method+' '+u.path
+            print('GitHub request:',endpoint,flush=True)
+            headers={'Authorization':'Bearer '+self.token,'Accept':accept,'X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/octet-stream' if isinstance(body,bytes) else 'application/json'}
+            try:
+             response=self.opener.open(urllib.request.Request(url,data=data,method=method,headers=headers),timeout=180)
+            except urllib.error.HTTPError as ex:
+             if ex.code==404 and method=='GET' and not binary:return None
+             if ex.code in (301,302,303,307,308) and method=='GET' and binary:
+              target=ex.headers.get('Location','');host=urllib.parse.urlsplit(target)
+              require(host.scheme=='https' and not host.username and host.hostname and (host.hostname.endswith('.blob.core.windows.net') or host.hostname=='release-assets.githubusercontent.com' or host.hostname.endswith('.githubusercontent.com')),'untrusted download redirect')
+              # Fresh request without Authorization; no automatic chained redirects.
+              try:response=self.opener.open(urllib.request.Request(target,headers={'Accept':'application/octet-stream'}),timeout=180)
+              except Exception:raise Stop('redirected download failed (URL redacted)') from None
+             else:raise Stop('GitHub HTTP '+str(ex.code)+' at '+endpoint+' (body/query redacted)') from None
+            except Exception:raise Stop('GitHub request failed at '+endpoint+' (details redacted)') from None
+            with response:
+             data=response.read(512*1024*1024+1);require(len(data)<=512*1024*1024,'response exceeds limit')
+            return data if binary else json.loads(data)
+          
+          def verify_publisher(api,m,publisher):
+           root='/repos/'+m['repository']
+           ref=api.request('GET',root+'/git/ref/heads/'+m['publish_branch'])
+           require(ref and ref['object']['sha']==publisher,'publisher branch changed')
+           commit=api.request('GET',root+'/commits/'+publisher)
+           require(commit and [p['sha'] for p in commit['parents']]==[m['head']],'publisher parent mismatch')
+           require(len(commit['files'])==1 and commit['files'][0]['filename']==m['workflow_path'] and commit['files'][0]['status']=='added','publisher must only add fixed workflow')
+          
+          # Only the fixed metadata correction writes below are permitted.
+          RELEASE_KEYS=('id','tag_name','target_commitish','name','body','draft','prerelease')
+          ASSET_KEYS=('id','name','label','size','digest','state')
+          def asset_snapshot(a):
+           out={k:a.get(k) for k in ASSET_KEYS}
+           # GitHub uses either null or empty string for an asset without a display label.
+           if out['label'] is None:out['label']=''
+           return out
+          def release_snapshot(r):
+           return {**{k:r.get(k) for k in RELEASE_KEYS},'assets':sorted((asset_snapshot(a) for a in r['assets']),key=lambda a:a['id'])}
+          def validate_manifest(m):
+           a={a['id']:a for a in m['release']['assets']};require(len(a)==len(m['release']['assets']),'duplicate original assets')
+           require(len({c['id'] for c in m['changes']})==len(m['changes']),'duplicate change id')
+           changed={}
+           for c in m['changes']:
+            require(c['id'] in a,'unknown asset id');require(set(c)=={'id','name','label'},'unexpected asset changes')
+            require(re.fullmatch(r'[A-Za-z0-9_.-]+',c['name']) and c['name'] not in ('.','..'),'unsafe name');changed[c['id']]=c
+           names=[changed.get(i,x)['name'] for i,x in a.items()]
+           require(len(set(names))==len(names),'asset name collision')
+           require(m['checksum']['name']=='CURRENT-DOWNLOAD-SHA256SUMS.txt' and m['checksum']['name'] not in names,'checksum collision')
+           packages=[(changed.get(i,x)['name'],x['digest']) for i,x in a.items() if x['name'].endswith(('.zip','.exe'))]
+           require(packages and all(re.fullmatch('sha256:[0-9a-f]{64}',d) for n,d in packages),'missing package digest')
+           require(m['checksum']['text']==''.join(d[7:]+'  '+n+'\n' for n,d in sorted(packages)),'checksum content mismatch')
+           require(set(m['patch'])=={'name','body','prerelease','draft','make_latest'} and m['patch']['draft'] is False,'invalid release patch')
+           require((m['patch']['prerelease'],m['patch']['make_latest']) in ((True,'false'),(False,'true')),'latest/prerelease mismatch')
+          
+          def authorize_write(m,method,path,body):
+           root='/repos/'+m['repository'];rid=str(m['release']['id'])
+           if method=='PATCH' and path==root+'/releases/'+rid:
+            require(body==m['patch'],'release patch mismatch');return
+           for c in m['changes']:
+            if method=='PATCH' and path==root+'/releases/assets/'+str(c['id']):
+             require(body=={'name':c['name'],'label':c['label']},'asset patch mismatch');return
+           url='https://uploads.github.com'+root+'/releases/'+rid+'/assets?name='+m['checksum']['name']
+           if method=='POST' and path==url:
+            require(body==m['checksum']['text'].encode(),'checksum bytes mismatch');return
+           raise Stop('write outside exact correction scope')
+          
+          class CorrectionAPI(API):
+           def __init__(self,token,m,write=False):super().__init__(token,write);self.m=m
+           def request(self,method,path,body=None,binary=False):
+            if method!='GET':authorize_write(self.m,method,path,body)
+            return super().request(method,path,body,binary)
+          
+          def verify_identity(api,m):
+           root='/repos/'+m['repository']
+           tag=api.request('GET',root+'/git/ref/tags/'+urllib.parse.quote(m['release']['tag_name'],safe=''))
+           require(tag and tag['object']['type']=='commit' and tag['object']['sha']==m['head'],'tag target changed')
+           main=api.request('GET',root+'/git/ref/heads/main');require(main and main['object']['sha']==m['main'],'main changed')
+           for run in m['runs']:
+            got=api.request('GET',root+'/actions/runs/'+str(run['id']))
+            require(got and all(got.get(k)==run[k] for k in ('id','head_sha','run_attempt')) and got['repository']['full_name']==m['repository'] and got['status']=='completed' and got['conclusion']=='success','original CI binding changed')
+          
+          def verify_history(api,m):
+           root='/repos/'+m['repository']
+           for expected in m['old_releases']:
+            actual=api.request('GET',root+'/releases/'+str(expected['id']))
+            require(actual and release_snapshot(actual)==expected,'historical release changed')
+          
+          def latest_id(api,m):
+           got=api.request('GET','/repos/'+m['repository']+'/releases/latest');return got['id'] if got else None
+          
+          def verify(api,m):
+           validate_manifest(m);verify_identity(api,m);verify_history(api,m)
+           require(latest_id(api,m)==m['latest_before'],'latest changed')
+           got=api.request('GET','/repos/'+m['repository']+'/releases/'+str(m['release']['id']))
+           require(got and release_snapshot(got)==release_snapshot(m['release']),'release snapshot changed')
+           require(not got.get('immutable',False),'release is immutable')
+           return got
+          
+          def expected_assets(m,checksum_id=None):
+           out={a['id']:asset_snapshot(a) for a in m['release']['assets']}
+           for c in m['changes']:out[c['id']].update(c)
+           if checksum_id is not None:
+            data=m['checksum']['text'].encode();out[checksum_id]={'id':checksum_id,'name':m['checksum']['name'],'label':'','size':len(data),'digest':'sha256:'+sha(data),'state':'uploaded'}
+           return sorted(out.values(),key=lambda a:a['id'])
+          
+          def verify_assets(api,m,checksum_id=None):
+           got=api.request('GET','/repos/'+m['repository']+'/releases/'+str(m['release']['id'])+'/assets?per_page=100')
+           require(isinstance(got,list) and sorted((asset_snapshot(a) for a in got),key=lambda a:a['id'])==expected_assets(m,checksum_id),'corrected assets mismatch')
+          
+          def correct(api,m):
+           verify(api,m);root='/repos/'+m['repository'];rid=str(m['release']['id']);last='none'
+           try:
+            for c in m['changes']:
+             path=root+'/releases/assets/'+str(c['id']);body={'name':c['name'],'label':c['label']}
+             authorize_write(m,'PATCH',path,body);last='asset PATCH '+str(c['id'])
+             result=api.request('PATCH',path,body)
+             expected=next(a for a in expected_assets(m) if a['id']==c['id'])
+             require(asset_snapshot(result)==expected,'asset PATCH response mismatch')
+            verify_assets(api,m)
+            data=m['checksum']['text'].encode();url='https://uploads.github.com'+root+'/releases/'+rid+'/assets?name='+m['checksum']['name']
+            authorize_write(m,'POST',url,data);last='checksum upload'
+            added=api.request('POST',url,data);newid=added['id']
+            require(newid not in {a['id'] for a in m['release']['assets']},'checksum id collision')
+            verify_assets(api,m,newid)
+            verify_identity(api,m);verify_history(api,m)
+            require(latest_id(api,m)==m['latest_before'],'latest changed before final PATCH')
+            current=api.request('GET',root+'/releases/'+rid)
+            require(all(current.get(k)==m['release'].get(k) for k in RELEASE_KEYS),'release metadata changed before final PATCH')
+            path=root+'/releases/'+rid;authorize_write(m,'PATCH',path,m['patch']);last='final release PATCH'
+            api.request('PATCH',path,m['patch'])
+            final=api.request('GET',path)
+            require(all(final.get(k)==m['release'].get(k) for k in ('id','tag_name','target_commitish')),'release identity changed')
+            require(all(final.get(k)==m['patch'][k] for k in ('name','body','draft','prerelease')),'final release metadata mismatch')
+            verify_assets(api,m,newid);verify_identity(api,m);verify_history(api,m)
+            require(latest_id(api,m)==(m['release']['id'] if m['patch']['make_latest']=='true' else m['latest_before']),'final latest mismatch')
+            print('CORRECTION_VERIFIED',json.dumps({'repository':m['repository'],'release_id':m['release']['id'],'title':m['patch']['name'],'prerelease':m['patch']['prerelease'],'checksum_asset_id':newid}))
+            return final
+           except Exception as ex:
+            raise Stop('correction outcome may be partial or uncertain after '+last+'; do not retry automatically; reconcile fixed release/asset IDs first'+('; '+str(ex) if isinstance(ex,Stop) else '')) from None
+          
+          def correction_main(m,mode):
+           guard(m,os.environ,json.load(open(os.environ['GITHUB_EVENT_PATH'])))
+           require(mode in ('verify','correct'),'invalid mode')
+           api=CorrectionAPI(os.environ['GITHUB_TOKEN'],m,write=mode=='correct')
+           verify_publisher(api,m,os.environ['GITHUB_SHA'])
+           if mode=='verify':verify(api,m);print('READ_ONLY_CORRECTION_CHECK_PASSED',m['repository'])
+           else:correct(api,m)
+          
+          MANIFEST=json.loads('{"changes": [{"id": 695988488, "label": "OptiScaler DLSSNR CN 0.2.0 \\u00b7 \\u6b63\\u5f0f\\u6c49\\u5316\\u5305", "name": "OptiScaler-DLSSNR-CN-v0.2.0-zh20261101.zip"}, {"id": 695988696, "label": "\\u539f\\u59cb\\u6784\\u5efa\\u6765\\u6e90\\u8bb0\\u5f55\\uff08\\u4fdd\\u7559\\u65e7\\u6587\\u4ef6\\u540d\\u4e0e\\u521d\\u6b21\\u53d1\\u5e03\\u72b6\\u6001\\uff09", "name": "provenance.json"}, {"id": 695988712, "label": "\\u539f\\u59cb\\u6784\\u5efa\\u6821\\u9a8c\\u8bb0\\u5f55\\uff08\\u65e7\\u6587\\u4ef6\\u540d\\uff09\\uff1b\\u5f53\\u524d\\u4e0b\\u8f7d\\u8bf7\\u7528 CURRENT-DOWNLOAD-SHA256SUMS.txt", "name": "SHA256SUMS"}], "checksum": {"name": "CURRENT-DOWNLOAD-SHA256SUMS.txt", "text": "fbd440acda346a5bff32adc25ccf1683d93bfc2a49b45d58349aa46795c0d46b  OptiScaler-DLSSNR-CN-v0.2.0-zh20261101.zip\\n"}, "head": "d1217d0c000303e929f6ac1d7cd09d2fcfc57899", "latest_before": 387538843, "main": "a525c3071bb31d8955a6e1014562278df6baac3b", "old_releases": [{"assets": [{"digest": "sha256:f5226bc8a530c4591276ce4fd2056a2b183a2ae91a88b52784bb024ff426ad17", "id": 559200018, "label": "", "name": "OptiScaler-DLSSNR-CN-v0.2.0-dlssnr-973761621353.zip", "size": 131301114, "state": "uploaded"}, {"digest": "sha256:77e6f21c867e3a79a01850e131c65fe8be327158c91d968496e36ffd70af723a", "id": 559200174, "label": "", "name": "build-metadata.json", "size": 388, "state": "uploaded"}], "body": "# OptiScaler DLSSNR CN\\r\\n\\r\\n- \\u5bf9\\u5e94\\u5b98\\u65b9\\u7248\\u672c/\\u5f15\\u7528\\uff1a`v0.2.0-dlssnr`\\r\\n- \\u5bf9\\u5e94\\u5b98\\u65b9 commit\\uff1a`973761621353b99bee3dc7d4bb27b117fef2644f`\\r\\n- \\u4e2d\\u6587\\u8986\\u76d6\\uff1a**888/888 (100.00%)**\\r\\n- \\u4eba\\u5de5\\u786e\\u8ba4\\uff1a233\\r\\n- \\u673a\\u5668\\u7ffb\\u8bd1\\uff1a655\\r\\n- \\u5c1a\\u672a\\u7ffb\\u8bd1\\uff08\\u81ea\\u52a8\\u82f1\\u6587 fallback\\uff09\\uff1a0\\r\\n- \\u6e90\\u6587\\u53d8\\u5316\\u3001\\u5f85\\u590d\\u6838\\uff1a0\\r\\n- \\u672c\\u6b21\\u626b\\u63cf\\u65b0\\u589e UI\\uff1a0\\r\\n- \\u672c\\u6b21\\u626b\\u63cf\\u53d8\\u5316 UI\\uff1a0\\r\\n- \\u672c\\u6b21\\u626b\\u63cf\\u5220\\u9664 UI\\uff1a0\\r\\n- \\u672c\\u6b21\\u65b0\\u589e/\\u66f4\\u65b0\\u6709\\u6548\\u4e2d\\u6587\\uff1a0\\r\\n- \\u6784\\u5efa\\u65e5\\u671f\\uff08UTC\\uff09\\uff1a2026-09-12T12:05:07.738232+00:00\\r\\n\\r\\n\\u8fd9\\u662f\\u793e\\u533a\\u4e2d\\u6587\\u6d3e\\u751f\\u6784\\u5efa\\uff0c\\u4e0d\\u662f\\u5bf9\\u5e94\\u4e0a\\u6e38 Fork \\u7684\\u5b98\\u65b9\\u53d1\\u5e03\\u3002\\u672a\\u8986\\u76d6\\u6216\\u5f85\\u590d\\u6838\\u7684\\u9879\\u76ee\\u4f1a\\u663e\\u793a\\u5b98\\u65b9\\u82f1\\u6587\\uff0c\\u4e0d\\u4f1a\\u663e\\u793a\\u7a7a\\u767d\\u3002\\r\\n", "draft": false, "id": 387538843, "name": "OptiScaler DLSSNR CN - v0.2.0-dlssnr", "prerelease": false, "tag_name": "cn-v0.2.0-dlssnr-97376162", "target_commitish": "main"}], "patch": {"body": "## \\u7248\\u672c\\u8bf4\\u660e\\n\\u672c\\u8f6e\\u51c6\\u786e\\u5bf9\\u5e94\\u4e0a\\u6e38\\u6b63\\u5f0f\\u7248 v0.2.0-dlssnr\\u3002\\u672c\\u5305\\u73b0\\u4e3a\\u793e\\u533a\\u6b63\\u5f0f\\u6c49\\u5316\\u53d1\\u5e03\\uff0c\\u4e0d\\u662f\\u4e0a\\u6e38\\u5b98\\u65b9\\u53d1\\u884c\\u3002\\n\\n\\u6c49\\u5316\\u66f4\\u65b0\\u6807\\u8bc6\\uff1a2026-11-01\\uff08\\u5317\\u4eac\\u65f6\\u95f4\\uff09\\u3002\\u8fd9\\u662f\\u540c\\u4e00\\u6279\\u5df2\\u6784\\u5efa\\u3001\\u5df2\\u9a8c\\u6536\\u6587\\u4ef6\\u7684\\u547d\\u540d\\u4e0e\\u53d1\\u5e03\\u72b6\\u6001\\u4fee\\u6b63\\uff0c\\u6ca1\\u6709\\u91cd\\u65b0\\u7f16\\u8bd1\\u3001\\u91cd\\u6253\\u5305\\u6216\\u4fee\\u6539\\u7a0b\\u5e8f\\u5185\\u5bb9\\u3002\\n\\n## \\u4e0b\\u8f7d\\u4e0e\\u6821\\u9a8c\\n\\u8bf7\\u6309\\u6587\\u4ef6\\u540d\\u4e2d\\u7684\\u4ea7\\u54c1\\u7248\\u672c\\u548c\\u5305\\u7c7b\\u578b\\u4e0b\\u8f7d\\uff1b\\u4f7f\\u7528\\u9644\\u4ef6 **CURRENT-DOWNLOAD-SHA256SUMS.txt** \\u6821\\u9a8c\\u5f53\\u524d\\u4e0b\\u8f7d\\u6587\\u4ef6\\u3002\\n\\u539f\\u59cb SHA256SUMS\\u3001provenance.json\\u3001build-metadata.json\\uff08\\u5982\\u6709\\uff09\\u53ca .sha256\\uff08\\u5982\\u6709\\uff09\\u5747\\u539f\\u6837\\u4fdd\\u7559\\uff0c\\u662f\\u521d\\u6b21\\u6784\\u5efa/\\u53d1\\u5e03\\u7684\\u5386\\u53f2\\u8bc1\\u636e\\uff0c\\u53ef\\u80fd\\u5f15\\u7528\\u65e7\\u6587\\u4ef6\\u540d\\u6216\\u521d\\u6b21\\u5019\\u9009\\u72b6\\u6001\\uff0c\\u4e0d\\u4f5c\\u4e3a\\u5f53\\u524d\\u547d\\u540d\\u8bf4\\u660e\\u3002\\n\\n## \\u9a8c\\u8bc1\\u8303\\u56f4\\nWindows CI\\u3001\\u81ea\\u52a8\\u6d4b\\u8bd5\\u3001\\u5305\\u5b8c\\u6574\\u6027\\u53ca\\u54c8\\u5e0c\\u68c0\\u67e5\\u5df2\\u901a\\u8fc7\\u3002\\u5c1a\\u672a\\u8fdb\\u884c\\u771f\\u5b9e\\u6e38\\u620f\\u3001GPU \\u6216 GUI \\u89c6\\u89c9\\u8fd0\\u884c\\u9a8c\\u8bc1\\uff1b\\u6b63\\u5f0f\\u6c49\\u5316\\u53d1\\u5e03\\u4e0d\\u8868\\u793a\\u627f\\u8bfa\\u6240\\u6709\\u6e38\\u620f\\u517c\\u5bb9\\uff0c\\u4e5f\\u4e0d\\u8868\\u793a\\u6240\\u6709\\u52a8\\u6001\\u6587\\u672c\\u5df2\\u4eba\\u5de5\\u9010\\u5c4f\\u6838\\u9a8c\\u3002\\n\\n## \\u6587\\u4ef6\\u540d\\u5bf9\\u7167\\n- `OptiScaler-DLSSNR-CN-dlss-neural-rendering-973761621353.zip` \\u2192 `OptiScaler-DLSSNR-CN-v0.2.0-zh20261101.zip`\\n\\nRelease \\u9875\\u9762\\u3001\\u6807\\u7b7e\\u3001\\u6e90\\u4ee3\\u7801\\u63d0\\u4ea4\\u53ca\\u539f\\u6709\\u6587\\u4ef6 asset ID \\u4fdd\\u6301\\u4e0d\\u53d8\\uff1b\\u4e0b\\u8f7d\\u6587\\u4ef6\\u6539\\u540d\\u540e\\uff0c\\u65e7\\u6587\\u4ef6\\u540d\\u7684\\u76f4\\u63a5\\u4e0b\\u8f7d\\u94fe\\u63a5\\u53ef\\u80fd\\u5931\\u6548\\uff0c\\u8bf7\\u4ece\\u672c\\u53d1\\u5e03\\u9875\\u4f7f\\u7528\\u65b0\\u94fe\\u63a5\\u3002\\u6807\\u7b7e\\u4e2d\\u7684 candidate \\u662f\\u4fdd\\u7559\\u7684\\u5386\\u53f2\\u5b9a\\u4f4d\\u7b26\\uff0c\\u5f53\\u524d\\u53d1\\u5e03\\u6027\\u8d28\\u4ee5\\u672c\\u9875\\u6807\\u8bb0\\u548c\\u7248\\u672c\\u8bf4\\u660e\\u4e3a\\u51c6\\u3002\\u65e7\\u7248\\u53d1\\u5e03\\u4e0e\\u9644\\u4ef6\\u672a\\u4fee\\u6539\\u3002\\n\\n## \\u6784\\u5efa\\u6765\\u6e90\\n- \\u6c49\\u5316\\u6e90\\u63d0\\u4ea4\\uff1a`d1217d0c000303e929f6ac1d7cd09d2fcfc57899`\\n- \\u5b9e\\u9645 CI checkout\\uff1a`cdddec9d07be63ceda0c907c518054e45a790a6c`\\n- \\u6e90\\u7801\\u6811\\uff1a`c653c5adf51e5ad21a3cf2af402d30f98c080059`\\n- \\u4e0a\\u6e38\\u63d0\\u4ea4\\uff1a`973761621353b99bee3dc7d4bb27b117fef2644f`\\n", "draft": false, "make_latest": "true", "name": "OptiScaler DLSSNR CN 0.2.0 \\u00b7 \\u6c49\\u5316\\u66f4\\u65b0 2026-11-01", "prerelease": false}, "publish_branch": "release-metadata/20261101-d1217d0c", "release": {"assets": [{"digest": "sha256:fbd440acda346a5bff32adc25ccf1683d93bfc2a49b45d58349aa46795c0d46b", "id": 695988488, "label": "", "name": "OptiScaler-DLSSNR-CN-dlss-neural-rendering-973761621353.zip", "size": 131313656, "state": "uploaded"}, {"digest": "sha256:a978f7a299f4840d7d5fc97107eed88278441f29526a3ec326e3cd9daa535d94", "id": 695988696, "label": "", "name": "provenance.json", "size": 2554, "state": "uploaded"}, {"digest": "sha256:beeb1ea557df4e693fb649fe6c64d1f8dfd125035bf897504977e6e85e678296", "id": 695988712, "label": "", "name": "SHA256SUMS", "size": 208, "state": "uploaded"}], "body": "Candidate prerelease of reviewed localization maintenance; not a stable release.\\nSource: d1217d0c000303e929f6ac1d7cd09d2fcfc57899\\nActual CI checkout: cdddec9d07be63ceda0c907c518054e45a790a6c\\nCommon tree: c653c5adf51e5ad21a3cf2af402d30f98c080059\\nUpstream: 973761621353b99bee3dc7d4bb27b117fef2644f\\nWindows CI and package checks passed. Game/GPU/UI visual runtime validation not performed.\\nNo previous release is replaced.\\n", "draft": false, "id": 430076229, "name": "OptiScaler-DLSSNR-CN 2026-10-31 candidate d1217d0c", "prerelease": true, "tag_name": "cn-candidate-20261031-d1217d0c", "target_commitish": "d1217d0c000303e929f6ac1d7cd09d2fcfc57899"}, "repository": "Night-SHANG/OptiScaler-DLSSNR-CN", "runs": [{"head_sha": "d1217d0c000303e929f6ac1d7cd09d2fcfc57899", "id": 41220997459, "run_attempt": 1}, {"head_sha": "d1217d0c000303e929f6ac1d7cd09d2fcfc57899", "id": 41220997329, "run_attempt": 1}], "workflow_path": ".github/workflows/correct-release-metadata-20261101.yml"}')
+          try:
+           correction_main(MANIFEST,'correct')
+          except Stop as ex:
+           print(str(ex),file=sys.stderr)
+           sys.exit(1)
+          PY
